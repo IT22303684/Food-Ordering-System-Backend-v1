@@ -1,8 +1,7 @@
 // auth-service/src/routes/auth.routes.js
 import express from "express";
-import { register, login, getProfile } from "../controllers/auth.controller.js";
 import { AuthController } from "../controllers/auth.controller.js";
-import { authenticate, authorize } from "../middleware/auth.middleware.js";
+import { auth, authorize } from "../middleware/auth.middleware.js";
 import {
   validateRegistration,
   validateLogin,
@@ -17,8 +16,8 @@ const router = express.Router();
 const authController = new AuthController();
 
 // Public routes
-router.post("/register", validateRegistration, register);
-router.post("/login", validateLogin, login);
+router.post("/register", validateRegistration, authController.register);
+router.post("/login", validateLogin, authController.login);
 router.post(
   "/verify-email",
   validateEmailVerification,
@@ -36,23 +35,23 @@ router.post(
 );
 
 // Protected routes
-router.get("/profile", authenticate, getProfile);
+router.get("/profile", auth, authController.getProfile);
 router.patch(
   "/profile",
-  authenticate,
+  auth,
   validateProfileUpdate,
   authController.updateProfile
 );
 router.post(
   "/change-password",
-  authenticate,
+  auth,
   validateChangePassword,
   authController.changePassword
 );
-router.post("/logout", authenticate, authController.logout);
+router.post("/logout", auth, authController.logout);
 
 // Admin routes
-router.get("/users", authenticate, authorize("ADMIN"), (req, res) => {
+router.get("/users", auth, authorize("ADMIN"), (req, res) => {
   // Admin functionality here
 });
 

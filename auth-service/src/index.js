@@ -4,14 +4,21 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 import logger from "./utils/logger.js";
 import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  })
+);
 app.use(express.json());
+app.use(cookieParser());
 app.use(morgan("dev"));
 
 // Routes

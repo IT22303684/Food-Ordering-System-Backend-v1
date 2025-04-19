@@ -2,10 +2,12 @@ import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 import logger from "../utils/logger.js";
 
-export const authenticate = async (req, res, next) => {
+export const auth = async (req, res, next) => {
   try {
-    // Get token from header
-    const token = req.header("Authorization")?.replace("Bearer ", "");
+    // Get token from header or cookie
+    const token =
+      req.header("Authorization")?.replace("Bearer ", "") || req.cookies.token;
+
     if (!token) {
       return res
         .status(401)
@@ -14,12 +16,14 @@ export const authenticate = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
 
+    // Find user
+    const user = await User.findById(decoded.userId);
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
 
+    // Attach user to request
     req.user = user;
     next();
   } catch (error) {
