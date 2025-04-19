@@ -7,8 +7,18 @@ import logger from "../utils/logger.js";
 export class AuthController {
   constructor() {
     this.authService = new AuthService();
-  }
 
+    this.register = this.register.bind(this);
+    this.login = this.login.bind(this);
+    this.getProfile = this.getProfile.bind(this);
+    this.verifyEmail = this.verifyEmail.bind(this);
+    this.forgotPassword = this.forgotPassword.bind(this);
+    this.resetPassword = this.resetPassword.bind(this);
+    this.updateProfile = this.updateProfile.bind(this);
+    this.changePassword = this.changePassword.bind(this);
+    this.logout = this.logout.bind(this);
+  }
+  
   async register(req, res) {
     try {
       const { email, password, role, firstName, lastName, address } = req.body;
@@ -46,6 +56,7 @@ export class AuthController {
       });
     } catch (error) {
       console.error("Registration error:", error.message);
+      console.error("Error stack trace:", error.stack); // Log the full stack trace
       if (error.name === "ValidationError") {
         console.error(
           "Validation errors:",

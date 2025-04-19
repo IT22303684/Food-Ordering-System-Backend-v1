@@ -1,13 +1,20 @@
 FROM node:18-alpine
 
+# Set working directory
 WORKDIR /app
 
-COPY package*.json ./
+# Copy package.json and yarn.lock separately
+COPY package.json ./
+COPY yarn.lock ./
 
-RUN yarn install
+# Install dependencies
+RUN yarn install --frozen-lockfile
 
+# Copy source code
 COPY . .
 
-EXPOSE 3007
+# Expose port
+EXPOSE 3001
 
-CMD ["yarn", "dev"] 
+# Start the service
+CMD ["yarn", "start"]
