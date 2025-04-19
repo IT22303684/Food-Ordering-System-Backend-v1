@@ -1,0 +1,12 @@
+{
+  "name": "food-ordering-system-backend",
+  "version": "1.0.0",
+  "description": "Food Ordering System Backend Services",
+  "scripts": {
+    "dev": "concurrently \"cd auth-service && yarn dev\" \"cd notification-service && yarn dev\" \"cd api-gateway && yarn dev\"",
+    "install-all": "concurrently \"cd auth-service && yarn install\" \"cd notification-service && yarn install\" \"cd api-gateway && yarn install\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
