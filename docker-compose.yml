@@ -1,24 +1,21 @@
 # version: "3.8"
 
 services:
-  # API Gateway
-  # api-gateway:
-  #   build: ./api-gateway
-  #   ports:
-  #     - "80:80"
-  #   volumes:
-  #     - ./api-gateway:/app
-  #     - /app/node_modules
-  #   env_file:
-  #     - ./env/api-gateway.env
-  #   depends_on:
-  #     - auth-service
-  #     - customer-service
-  #     - restaurant-service
-  #     - order-service
-  #     - delivery-service
-  #     - payment-service
-  #     - notification-service
+  #API Gateway
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./api-gateway:/app
+      - /app/node_modules
+    env_file:
+      - ./env/api-gateway.env
+    depends_on:
+      - auth-service
+      - notification-service
+    networks:
+      - food-ordering-network
 
   # Auth Service
   auth-service:
@@ -120,3 +117,4 @@ services:
 networks:
   food-ordering-network:
     driver: bridge
+    name: food-ordering-network

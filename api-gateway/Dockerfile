@@ -16,7 +16,7 @@ RUN yarn install --frozen-lockfile
 COPY . .
 
 # Expose the port
-EXPOSE 3003
+EXPOSE 3000
 
 # Start the application
 CMD ["yarn", "dev"]

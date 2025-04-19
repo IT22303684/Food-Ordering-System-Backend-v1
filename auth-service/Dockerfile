@@ -3,18 +3,20 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and yarn.lock separately
-COPY package.json ./
-COPY yarn.lock ./
+# Install dependencies first to leverage Docker cache
+COPY package.json yarn.lock ./
+
+# Set NODE_TLS_REJECT_UNAUTHORIZED to 0 for development
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 
 # Install dependencies
 RUN yarn install --frozen-lockfile
 
-# Copy source code
+# Copy the rest of the application
 COPY . .
 
-# Expose port
-EXPOSE 3001
+# Expose the port
+EXPOSE 3002
 
-# Start the service
-CMD ["yarn", "start"]
+# Start the application
+CMD ["yarn", "dev"]
