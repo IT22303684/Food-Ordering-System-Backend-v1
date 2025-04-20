@@ -17,8 +17,9 @@ export class AuthController {
     this.updateProfile = this.updateProfile.bind(this);
     this.changePassword = this.changePassword.bind(this);
     this.logout = this.logout.bind(this);
+    this.verifyAuth = this.verifyAuth.bind(this);
   }
-  
+
   async register(req, res) {
     try {
       const { email, password, role, firstName, lastName, address } = req.body;
@@ -241,5 +242,39 @@ export class AuthController {
       status: "success",
       message: "Logged out successfully",
     });
+  }
+
+  async verifyAuth(req, res) {
+    try {
+      // The authMiddleware already verified the token and attached the user
+      const user = await User.findById(req.user.id).select("-password");
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      // Return user information
+      res.status(200).json({
+        success: true,
+        user: {
+          id: user._id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          isVerified: user.isVerified,
+          isActive: user.isActive,
+        },
+      });
+    } catch (error) {
+      logger.error("Auth verification error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Authentication verification failed",
+      });
+    }
   }
 }

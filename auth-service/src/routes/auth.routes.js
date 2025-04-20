@@ -50,6 +50,9 @@ router.post(
 );
 router.post("/logout", auth, authController.logout);
 
+// Authentication verification endpoint for other services
+router.post("/verify", auth, authController.verifyAuth);
+
 // Admin routes
 router.get("/users", auth, authorize("ADMIN"), (req, res) => {
   // Admin functionality here
