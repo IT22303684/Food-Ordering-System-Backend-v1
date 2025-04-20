@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 const restaurantSchema = new mongoose.Schema({
+  userId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    required: true, 
+    unique: true 
+  }, // Store the user ID from auth-service
   restaurantName: { type: String, required: true },
   contactPerson: { type: String, required: true },
   phoneNumber: { type: String, required: true },
@@ -16,14 +21,16 @@ const restaurantSchema = new mongoose.Schema({
     zipCode: { type: String, required: true },
     country: { type: String, required: true }
   },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  status: { 
+    type: String, 
+    enum: ['pending', 'approved', 'rejected'], 
+    default: 'pending' 
+  },
   agreeTerms: { type: Boolean, required: true },
   businessLicense: { type: String }, // Cloudinary URL
   foodSafetyCert: { type: String }, // Cloudinary URL
   exteriorPhoto: { type: String }, // Cloudinary URL
   logo: { type: String }, // Cloudinary URL
-  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
   createdAt: { type: Date, default: Date.now }
 });
 

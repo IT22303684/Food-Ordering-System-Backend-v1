@@ -6,8 +6,14 @@ import { validateRestaurantRegistration } from '../validation/restaurant.Validat
 const router = express.Router();
 const restaurantController = new RestaurantController();
 
+// Existing Routes
 router.post('/register', upload, validateRestaurantRegistration, restaurantController.registerRestaurant);
 router.get('/:id', restaurantController.getRestaurantById);
 router.patch('/:id', restaurantController.updateRestaurantStatus);
+
+// New Routes
+router.get('/', restaurantController.getAllRestaurants); // Get all restaurants
+router.put('/:id', upload, restaurantController.updateRestaurant); // Update restaurant details
+router.delete('/:id', restaurantController.deleteRestaurant); // Delete a restaurant
 
 export default router;
