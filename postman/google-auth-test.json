@@ -1,0 +1,79 @@
+{
+  "info": {
+    "name": "Google OAuth Test",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Google Auth Code",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "https://accounts.google.com/o/oauth2/v2/auth?client_id=375856815115-pro0o6g1nc18cb94mvjibihrdf1tmje7.apps.googleusercontent.com&redirect_uri=http://localhost:3002/api/auth/google/callback&response_type=code&scope=email%20profile&access_type=offline&prompt=consent",
+          "protocol": "https",
+          "host": ["accounts", "google", "com"],
+          "path": ["o", "oauth2", "v2", "auth"],
+          "query": [
+            {
+              "key": "client_id",
+              "value": "375856815115-pro0o6g1nc18cb94mvjibihrdf1tmje7.apps.googleusercontent.com"
+            },
+            {
+              "key": "redirect_uri",
+              "value": "http://localhost:3002/api/auth/google/callback"
+            },
+            {
+              "key": "response_type",
+              "value": "code"
+            },
+            {
+              "key": "scope",
+              "value": "email profile"
+            },
+            {
+              "key": "access_type",
+              "value": "offline"
+            },
+            {
+              "key": "prompt",
+              "value": "consent"
+            }
+          ]
+        },
+        "description": "Get the authorization code from Google"
+      }
+    },
+    {
+      "name": "Google OAuth",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"code\": \"{{google_auth_code}}\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3002/api/google/auth",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3002",
+          "path": ["api", "google", "auth"]
+        },
+        "description": "Test Google OAuth authentication"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "google_auth_code",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import logger from "./utils/logger.js";
 import authRoutes from "./routes/auth.routes.js";
+import googleRoutes from "./routes/google.routes.js";
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use(morgan("dev"));
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/google", googleRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

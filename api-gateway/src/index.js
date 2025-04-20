@@ -69,6 +69,18 @@ app.use(
   })
 );
 
+// Google Service Proxy
+app.use(
+  "/api/google",
+  createProxyMiddleware({
+    target: process.env.GOOGLE_SERVICE_URL,
+    ...proxyOptions,
+    pathRewrite: {
+      "^/api/google": "/api/google",
+    },
+  })
+);
+
 // Notification Service Proxy
 app.use(
   "/api/notifications",
