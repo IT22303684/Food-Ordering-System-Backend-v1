@@ -11,7 +11,7 @@ export class RestaurantController {
     this.updateRestaurant = this.updateRestaurant.bind(this);
     this.deleteRestaurant = this.deleteRestaurant.bind(this);
   }
-  // register resturent
+
   async registerRestaurant(req, res) {
     try {
       const {
@@ -32,15 +32,18 @@ export class RestaurantController {
         message: 'Restaurant registration submitted. Awaiting admin approval.',
         restaurant: {
           id: restaurant._id,
-          userId: restaurant.userId, // Include userId in the response (optional)
+          userId: restaurant.userId,
           email: restaurant.email,
           restaurantName: restaurant.restaurantName,
           status: restaurant.status
         }
       });
     } catch (error) {
-      logger.error('Restaurant registration error:', error.message);
-      logger.error('Error stack trace:', error.stack);
+      logger.error('Restaurant registration error:', {
+        message: error.message,
+        stack: error.stack,
+        requestBody: req.body.email
+      });
 
       if (error.name === 'ValidationError') {
         logger.error('Validation errors:', Object.values(error.errors).map(err => err.message));
@@ -57,12 +60,14 @@ export class RestaurantController {
         });
       }
 
-      logger.error('Server error:', error.message);
-      res.status(500).json({ message: 'Server error' });
+      logger.error('Server error:', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({ message: 'Server error: ' + error.message });
     }
   }
 
-  // get Resturent by ID
   async getRestaurantById(req, res) {
     try {
       logger.info('Fetching restaurant by ID:', { id: req.params.id });
@@ -84,7 +89,6 @@ export class RestaurantController {
     }
   }
 
-  // update resturent status
   async updateRestaurantStatus(req, res) {
     try {
       const { status } = req.body;
@@ -107,7 +111,6 @@ export class RestaurantController {
     }
   }
 
-  // get all resturents
   async getAllRestaurants(req, res) {
     try {
       logger.info('Fetching all restaurants');
@@ -129,7 +132,6 @@ export class RestaurantController {
     }
   }
 
-  // update resturent
   async updateRestaurant(req, res) {
     try {
       const { id } = req.params;
@@ -164,7 +166,6 @@ export class RestaurantController {
     }
   }
 
-  // delete resturent
   async deleteRestaurant(req, res) {
     try {
       const { id } = req.params;

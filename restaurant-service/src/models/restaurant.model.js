@@ -1,11 +1,19 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+
+const addressSchema = new mongoose.Schema({
+  streetAddress: { type: String, required: true },
+  city: { type: String, required: true },
+  state: { type: String, required: true },
+  zipCode: { type: String, required: true },
+  country: { type: String, required: true }
+});
 
 const restaurantSchema = new mongoose.Schema({
   userId: { 
     type: mongoose.Schema.Types.ObjectId, 
     required: true, 
     unique: true 
-  }, // Store the user ID from auth-service
+  },
   restaurantName: { type: String, required: true },
   contactPerson: { type: String, required: true },
   phoneNumber: { type: String, required: true },
@@ -14,25 +22,18 @@ const restaurantSchema = new mongoose.Schema({
   operatingHours: { type: String, required: true },
   deliveryRadius: { type: String, required: true },
   taxId: { type: String, required: true },
-  address: {
-    streetAddress: { type: String, required: true },
-    city: { type: String, required: true },
-    state: { type: String, required: true },
-    zipCode: { type: String, required: true },
-    country: { type: String, required: true }
-  },
+  address: { type: addressSchema, required: true },
+  email: { type: String, required: true, unique: true },
   status: { 
     type: String, 
     enum: ['pending', 'approved', 'rejected'], 
     default: 'pending' 
   },
   agreeTerms: { type: Boolean, required: true },
-  businessLicense: { type: String }, // Cloudinary URL
-  foodSafetyCert: { type: String }, // Cloudinary URL
-  exteriorPhoto: { type: String }, // Cloudinary URL
-  logo: { type: String }, // Cloudinary URL
-  createdAt: { type: Date, default: Date.now }
-});
+  businessLicense: { type: String },
+  foodSafetyCert: { type: String },
+  exteriorPhoto: { type: String },
+  logo: { type: String }
+}, { timestamps: true });
 
-const Restaurant = mongoose.model("Restaurant", restaurantSchema);
-export default Restaurant;
+export default mongoose.model('Restaurant', restaurantSchema);

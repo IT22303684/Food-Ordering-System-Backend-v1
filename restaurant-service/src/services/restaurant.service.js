@@ -1,6 +1,5 @@
 import Restaurant from '../models/restaurant.model.js';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
-import bcrypt from 'bcryptjs';
 import fs from 'fs/promises';
 import axios from 'axios';
 import logger from '../utils/logger.js';
@@ -12,7 +11,8 @@ export class RestaurantService {
       deliveryRadius, taxId, streetAddress, city, state, zipCode, country, email, password, agreeTerms
     } = data;
 
-    // Step 1: Check if restaurant email already exists in restaurant-service
+    // Step 1: Check if restaurant email already exists
+    logger.info('Checking for existing restaurant with email:', { email });
     const existingRestaurant = await Restaurant.findOne({ email });
     if (existingRestaurant) {
       const error = new Error('Email already registered');
@@ -21,7 +21,8 @@ export class RestaurantService {
       throw error;
     }
 
-    // Step 2: Register the user in auth-service with RESTAURANT role
+    // Step 2: Register user in auth-service
+    logger.info('Registering user in auth-service for email:', { email });
     let userId;
     try {
       const authResponse = await axios.post(`${process.env.AUTH_SERVICE_URL}/api/auth/register`, {
@@ -51,52 +52,64 @@ export class RestaurantService {
         { userId, email }
       );
     } catch (error) {
-      // Improved error handling to capture specific error messages
       const errorMessage = error.code === 'ECONNREFUSED'
-        ? `Could not connect to auth-service at ${process.env.AUTH_SERVICE_URL}. Please ensure auth-service is running on port 3002.`
+        ? `Could not connect to auth-service at ${process.env.AUTH_SERVICE_URL}.`
         : error.response?.data?.message || error.message || 'Unknown error';
       
       logger.error('Error creating user in auth-service: ' + errorMessage, {
         status: error.response?.status,
         data: error.response?.data,
-        stack: error.stack,
-        code: error.code,
-        config: error.config
+        stack: error.stack
       });
 
       const authError = new Error(`Failed to create user in auth-service: ${errorMessage}`);
-      authError.statusCode = error.response?.status || 503; // Use 503 Service Unavailable for connection issues
+      authError.statusCode = error.response?.status || 503;
       authError.isOperational = true;
       throw authError;
     }
 
     // Step 3: Upload files to Cloudinary
+    logger.info('Uploading files to Cloudinary', { files: Object.keys(files || {}) });
     let businessLicenseUrl, foodSafetyCertUrl, exteriorPhotoUrl, logoUrl;
     try {
       if (files?.businessLicense) {
+        logger.debug('Uploading businessLicense to Cloudinary');
         businessLicenseUrl = await uploadToCloudinary(files.businessLicense[0].path);
+        logger.debug('Deleting local businessLicense file');
         await fs.unlink(files.businessLicense[0].path);
       }
       if (files?.foodSafetyCert) {
+        logger.debug('Uploading foodSafetyCert to Cloudinary');
         foodSafetyCertUrl = await uploadToCloudinary(files.foodSafetyCert[0].path);
+        logger.debug('Deleting local foodSafetyCert file');
         await fs.unlink(files.foodSafetyCert[0].path);
       }
       if (files?.exteriorPhoto) {
+        logger.debug('Uploading exteriorPhoto to Cloudinary');
         exteriorPhotoUrl = await uploadToCloudinary(files.exteriorPhoto[0].path);
+        logger.debug('Deleting local exteriorPhoto file');
         await fs.unlink(files.exteriorPhoto[0].path);
       }
       if (files?.logo) {
+        logger.debug('Uploading logo to Cloudinary');
         logoUrl = await uploadToCloudinary(files.logo[0].path);
+        logger.debug('Deleting local logo file');
         await fs.unlink(files.logo[0].path);
       }
     } catch (error) {
+      logger.error('Cloudinary upload or file cleanup failed:', {
+        message: error.message,
+        stack: error.stack,
+        files: Object.keys(files || {})
+      });
       const uploadError = new Error(`Cloudinary upload failed: ${error.message}`);
       uploadError.statusCode = 500;
       uploadError.isOperational = true;
       throw uploadError;
     }
 
-    // Step 4: Create new restaurant with the userId
+    // Step 4: Create new restaurant
+    logger.info('Creating new restaurant in database');
     const restaurant = new Restaurant({
       userId,
       restaurantName,
@@ -109,7 +122,6 @@ export class RestaurantService {
       taxId,
       address: { streetAddress, city, state, zipCode, country },
       email,
-      password,
       agreeTerms,
       businessLicense: businessLicenseUrl,
       foodSafetyCert: foodSafetyCertUrl,
@@ -117,9 +129,27 @@ export class RestaurantService {
       logo: logoUrl
     });
 
-    await restaurant.save();
+    try {
+      await restaurant.save();
+      logger.info('Restaurant saved successfully', { restaurantId: restaurant._id });
+    } catch (error) {
+      logger.error('Failed to save restaurant to database:', {
+        message: error.message,
+        stack: error.stack,
+        restaurantData: {
+          userId,
+          restaurantName,
+          email
+        }
+      });
+      const dbError = new Error(`Failed to save restaurant: ${error.message}`);
+      dbError.statusCode = 500;
+      dbError.isOperational = true;
+      throw dbError;
+    }
 
     // Step 5: Notify admin via notification-service
+    logger.info('Sending notification to admin');
     try {
       await axios.post(`${process.env.NOTIFICATION_SERVICE_URL}/api/notifications/send`, {
         to: 'admin@example.com',
@@ -127,15 +157,19 @@ export class RestaurantService {
         subject: 'New Restaurant Registration',
         message: `A new restaurant (${restaurantName}) has registered and is awaiting your approval.`
       });
+      logger.info('Notification sent successfully');
     } catch (err) {
-      logger.error('Notification error:', err.message);
+      logger.error('Notification error:', {
+        message: err.message,
+        stack: err.stack
+      });
     }
 
     return { restaurant };
   }
 
   async getRestaurantById(id) {
-    const restaurant = await Restaurant.findById(id).select('-password');
+    const restaurant = await Restaurant.findById(id);
     if (!restaurant) {
       const error = new Error('Restaurant not found');
       error.statusCode = 404;
@@ -159,7 +193,7 @@ export class RestaurantService {
   }
 
   async getAllRestaurants() {
-    const restaurants = await Restaurant.find().select('-password');
+    const restaurants = await Restaurant.find();
     return restaurants;
   }
 
@@ -206,22 +240,18 @@ export class RestaurantService {
       if (files?.businessLicense) {
         businessLicenseUrl = await uploadToCloudinary(files.businessLicense[0].path);
         await fs.unlink(files.businessLicense[0].path);
-        restaurant.businessLicense = businessLicenseUrl;
       }
       if (files?.foodSafetyCert) {
         foodSafetyCertUrl = await uploadToCloudinary(files.foodSafetyCert[0].path);
         await fs.unlink(files.foodSafetyCert[0].path);
-        restaurant.foodSafetyCert = foodSafetyCertUrl;
       }
       if (files?.exteriorPhoto) {
         exteriorPhotoUrl = await uploadToCloudinary(files.exteriorPhoto[0].path);
         await fs.unlink(files.exteriorPhoto[0].path);
-        restaurant.exteriorPhoto = exteriorPhotoUrl;
       }
       if (files?.logo) {
         logoUrl = await uploadToCloudinary(files.logo[0].path);
         await fs.unlink(files.logo[0].path);
-        restaurant.logo = logoUrl;
       }
     } catch (error) {
       const uploadError = new Error(`Cloudinary upload failed: ${error.message}`);

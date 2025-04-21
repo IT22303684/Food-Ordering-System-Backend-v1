@@ -5,6 +5,7 @@ import cors from "cors";
 import morgan from "morgan";
 import logger from "./utils/logger.js";
 import restaurantRoutes from "./routes/restaurant.routes.js";
+import menuRoutes from "./routes/menu.routes.js";
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(morgan("dev"));
 
 // Routes
 app.use("/api/restaurants", restaurantRoutes);
+app.use("/api/restaurants", menuRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -1,26 +1,29 @@
 import multer from 'multer';
+import path from 'path';
 
-// Set storage for temporary uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
-// File filter for allowed types
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
+  const filetypes = /jpeg|jpg|png|pdf/;
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = filetypes.test(file.mimetype);
+
+  if (extname && mimetype) {
+    return cb(null, true);
   } else {
-    cb(new Error('Invalid file type. Only JPEG, PNG, and PDF are allowed.'));
+    cb(new Error('Only images and PDFs are allowed'));
   }
 };
 
-const upload = multer({
+export default multer({
   storage,
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
@@ -28,7 +31,7 @@ const upload = multer({
   { name: 'businessLicense', maxCount: 1 },
   { name: 'foodSafetyCert', maxCount: 1 },
   { name: 'exteriorPhoto', maxCount: 1 },
-  { name: 'logo', maxCount: 1 }
+  { name: 'logo', maxCount: 1 },
+  { name: 'mainImage', maxCount: 1 },
+  { name: 'thumbnailImage', maxCount: 1 }
 ]);
-
-export default upload;
