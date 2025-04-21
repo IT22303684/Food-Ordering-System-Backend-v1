@@ -93,6 +93,30 @@ app.use(
   })
 );
 
+// Order Service Proxy for /api/orders
+app.use(
+  "/api/orders",
+  createProxyMiddleware({
+    target: process.env.ORDER_SERVICE_URL,
+    ...proxyOptions,
+    pathRewrite: {
+      "^/api/orders": "/api/orders",
+    },
+  })
+);
+
+// Order Service Proxy for /api/cart
+app.use(
+  "/api/cart",
+  createProxyMiddleware({
+    target: process.env.ORDER_SERVICE_URL,
+    ...proxyOptions,
+    pathRewrite: {
+      "^/api/cart": "/api/cart",
+    },
+  })
+);
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -104,7 +128,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`API Gateway running on port ${PORT}`);
   console.log(`Auth Service URL: ${process.env.AUTH_SERVICE_URL}`);
-  console.log(
-    `Notification Service URL: ${process.env.NOTIFICATION_SERVICE_URL}`
-  );
+  console.log(`Notification Service URL: ${process.env.NOTIFICATION_SERVICE_URL}`);
+  console.log(`Order Service URL: ${process.env.ORDER_SERVICE_URL}`); 
 });

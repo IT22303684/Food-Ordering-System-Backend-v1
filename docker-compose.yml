@@ -56,20 +56,20 @@ services:
   #   depends_on:
   #     - auth-service
 
-  # # Order Service
-  # order-service:
-  #   build: ./order-service
-  #   ports:
-  #     - "3004:3004"
-  #   volumes:
-  #     - ./order-service:/app
-  #     - /app/node_modules
-  #   env_file:
-  #     - ./env/order-service.env
-  #   depends_on:
-  #     - auth-service
-  #     - customer-service
-  #     - restaurant-service
+  # Order Service
+  order-service:
+    build: ./order-service
+    ports:
+      - "3004:3004"
+    volumes:
+      - ./order-service:/app
+      - /app/node_modules
+    env_file:
+      - ./env/order-service.env
+    depends_on:
+      - auth-service
+      - customer-service
+      - restaurant-service
 
   # # Delivery Service
   # delivery-service:
