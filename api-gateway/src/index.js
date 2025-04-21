@@ -44,10 +44,13 @@ const proxyOptions = {
     });
   },
   onProxyReq: (proxyReq, req, res) => {
-    console.log("Proxying request:", req.method, req.url, req.body);
-    if (req.body) {
+    console.log("Proxying request:", req.method, req.url);
+    if (
+      req.body &&
+      req.headers["content-type"] &&
+      req.headers["content-type"].includes("application/json")
+    ) {
       const bodyData = JSON.stringify(req.body);
-      proxyReq.setHeader("Content-Type", "application/json");
       proxyReq.setHeader("Content-Length", Buffer.byteLength(bodyData));
       proxyReq.write(bodyData);
     }
@@ -93,6 +96,28 @@ app.use(
   })
 );
 
+// Restaurant Service Proxy
+app.use(
+  "/api/restaurants",
+  createProxyMiddleware({
+    target: process.env.RESTAURANT_SERVICE_URL,
+    ...proxyOptions,
+    pathRewrite: {
+      "^/api/restaurants": "/api/restaurants",
+    },
+    onError: (err, req, res) => {
+      console.error("Restaurant Service Proxy Error:", err.message, {
+        target: process.env.RESTAURANT_SERVICE_URL,
+        url: req.url,
+      });
+      res.status(500).json({
+        message: "Service is currently unavailable",
+        error: err.message,
+      });
+    },
+  })
+);
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -104,7 +129,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`API Gateway running on port ${PORT}`);
   console.log(`Auth Service URL: ${process.env.AUTH_SERVICE_URL}`);
-  console.log(
-    `Notification Service URL: ${process.env.NOTIFICATION_SERVICE_URL}`
-  );
+  console.log(`Notification Service URL: ${process.env.NOTIFICATION_SERVICE_URL}`);
+  console.log(`Restaurant Service URL: ${process.env.RESTAURANT_SERVICE_URL}`);
 });

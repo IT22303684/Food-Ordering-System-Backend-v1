@@ -5,6 +5,8 @@ import axios from 'axios';
 import logger from '../utils/logger.js';
 
 export class RestaurantService {
+
+// register resturent
   async registerRestaurant(data, files) {
     const {
       restaurantName, contactPerson, phoneNumber, businessType, cuisineType, operatingHours,
@@ -167,7 +169,7 @@ export class RestaurantService {
 
     return { restaurant };
   }
-
+// get resturent by ID
   async getRestaurantById(id) {
     const restaurant = await Restaurant.findById(id);
     if (!restaurant) {
@@ -178,7 +180,7 @@ export class RestaurantService {
     }
     return restaurant;
   }
-
+// update resturent status
   async updateRestaurantStatus(id, status) {
     const restaurant = await Restaurant.findById(id);
     if (!restaurant) {
@@ -191,12 +193,12 @@ export class RestaurantService {
     await restaurant.save();
     return restaurant;
   }
-
+// get all resturent
   async getAllRestaurants() {
     const restaurants = await Restaurant.find();
     return restaurants;
   }
-
+// update resturent
   async updateRestaurant(id, data, files) {
     const restaurant = await Restaurant.findById(id);
     if (!restaurant) {
@@ -263,7 +265,7 @@ export class RestaurantService {
     await restaurant.save();
     return restaurant;
   }
-
+// delete resturent
   async deleteRestaurant(id) {
     const restaurant = await Restaurant.findById(id);
     if (!restaurant) {
@@ -275,4 +277,17 @@ export class RestaurantService {
     await restaurant.deleteOne();
     return { message: 'Restaurant deleted successfully' };
   }
+  // get restaurant by userId
+  async getRestaurantByUserId(userId) {
+    logger.info('Fetching restaurant by userId:', { userId });
+    const restaurant = await Restaurant.findOne({ userId });
+    if (!restaurant) {
+      const error = new Error('Restaurant not found for this user');
+      error.statusCode = 404;
+      error.isOperational = true;
+      throw error;
+    }
+    return restaurant;
+  }
 }
+

@@ -10,8 +10,9 @@ export class RestaurantController {
     this.getAllRestaurants = this.getAllRestaurants.bind(this);
     this.updateRestaurant = this.updateRestaurant.bind(this);
     this.deleteRestaurant = this.deleteRestaurant.bind(this);
+    this.getRestaurantByUserId = this.getRestaurantByUserId.bind(this);
   }
-
+  // register resturent
   async registerRestaurant(req, res) {
     try {
       const {
@@ -67,7 +68,7 @@ export class RestaurantController {
       res.status(500).json({ message: 'Server error: ' + error.message });
     }
   }
-
+  // get resturent by ID
   async getRestaurantById(req, res) {
     try {
       logger.info('Fetching restaurant by ID:', { id: req.params.id });
@@ -88,7 +89,7 @@ export class RestaurantController {
       res.status(500).json({ message: 'Error fetching restaurant' });
     }
   }
-
+  // update resturent status
   async updateRestaurantStatus(req, res) {
     try {
       const { status } = req.body;
@@ -110,7 +111,7 @@ export class RestaurantController {
       res.status(500).json({ message: 'Error updating restaurant status' });
     }
   }
-
+  // get all resturent
   async getAllRestaurants(req, res) {
     try {
       logger.info('Fetching all restaurants');
@@ -131,7 +132,7 @@ export class RestaurantController {
       res.status(500).json({ message: 'Error fetching restaurants' });
     }
   }
-
+  // update resturent
   async updateRestaurant(req, res) {
     try {
       const { id } = req.params;
@@ -165,7 +166,7 @@ export class RestaurantController {
       res.status(500).json({ message: 'Error updating restaurant' });
     }
   }
-
+  // delete resturent
   async deleteRestaurant(req, res) {
     try {
       const { id } = req.params;
@@ -185,6 +186,34 @@ export class RestaurantController {
       }
 
       res.status(500).json({ message: 'Error deleting restaurant' });
+    }
+  }
+  // get resturent by userId
+  async getRestaurantByUserId(req, res) {
+    try {
+      const userId = req.query.userId || req.user.id; // Use req.user.id from JWT if query parameter is not provided
+      if (!userId) {
+        const error = new Error('User ID not provided');
+        error.statusCode = 400;
+        throw error;
+      }
+
+      logger.info('Fetching restaurant by userId:', { userId });
+
+      const restaurant = await this.restaurantService.getRestaurantByUserId(userId);
+
+      logger.info('Restaurant fetched successfully by userId:', { userId });
+
+      res.status(200).json(restaurant);
+    } catch (error) {
+      logger.error('Get restaurant by userId error:', error.message);
+      logger.error('Error stack trace:', error.stack);
+
+      if (error.isOperational) {
+        return res.status(error.statusCode).json({ message: error.message });
+      }
+
+      res.status(500).json({ message: 'Error fetching restaurant' });
     }
   }
 }

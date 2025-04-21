@@ -10,9 +10,16 @@ import menuRoutes from "./routes/menu.routes.js";
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // Add this for form-data parsing
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(morgan("dev"));
 
 // Routes
@@ -27,11 +34,15 @@ app.use((err, req, res, next) => {
 
 // Database connection
 mongoose
-  .connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.MONGODB_URI)
   .then(() => {
-    logger.info("Connected to MongoDB");
+    logger.info("Connected to MongoDB", {
+      timestamp: new Date().toISOString(),
+    });
     app.listen(process.env.PORT, () => {
-      logger.info(`Restaurant Service running on port ${process.env.PORT}`);
+      logger.info(`Resturent service running on port ${process.env.PORT}`, {
+        timestamp: new Date().toISOString(),
+      });
     });
   })
   .catch((err) => {

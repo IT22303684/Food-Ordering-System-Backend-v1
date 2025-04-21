@@ -1,45 +1,58 @@
-import axios from 'axios';
+import jwt from 'jsonwebtoken';
 import logger from '../utils/logger.js';
-import Restaurant from '../models/restaurant.model.js';
+import Restaurant from '../models/restaurant.model.js'; // Use import instead of require
 
 export const authMiddleware = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
-      return res.status(401).json({ message: 'No token provided' });
+      const error = new Error('No token provided');
+      error.statusCode = 401;
+      throw error;
     }
 
-    // Verify token with auth-service
-    const response = await axios.post(`${process.env.AUTH_SERVICE_URL}/api/auth/verify`, {}, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (!response.data.success) {
-      return res.status(401).json({ message: 'Invalid or expired token' });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Handle both `id` and `userId` in the token payload
+    const userId = decoded.id || decoded.userId;
+    if (!userId) {
+      const error = new Error('Invalid token: user ID not found');
+      error.statusCode = 401;
+      throw error;
     }
+    req.user = { id: userId, role: decoded.role };
 
-    const user = response.data.user;
-    if (user.role !== 'RESTAURANT') {
-      return res.status(403).json({ message: 'Access denied: Not a restaurant owner' });
-    }
+    if (req.params.id || req.query.userId) {
+      const restaurantId = req.params.id;
+      const userIdToCheck = req.query.userId || req.user.id;
 
-    // Attach user to request
-    req.user = user;
-
-    // Check if the user owns the restaurant (for routes with :id)
-    if (req.params.id) {
-      const restaurant = await Restaurant.findById(req.params.id);
-      if (!restaurant) {
-        return res.status(404).json({ message: 'Restaurant not found' });
+      if (req.user.role === 'RESTAURANT' && req.query.userId && req.query.userId !== req.user.id) {
+        const error = new Error('Unauthorized: Cannot access other restaurants');
+        error.statusCode = 403;
+        throw error;
       }
-      if (restaurant.userId.toString() !== user.id) {
-        return res.status(403).json({ message: 'Access denied: You do not own this restaurant' });
+
+      if (restaurantId) {
+        const restaurant = await Restaurant.findById(restaurantId);
+        if (!restaurant) {
+          const error = new Error('Restaurant not found');
+          error.statusCode = 404;
+          throw error;
+        }
+        if (req.user.role === 'RESTAURANT' && restaurant.userId.toString() !== req.user.id) {
+          const error = new Error('Unauthorized: Not your restaurant');
+          error.statusCode = 403;
+          throw error;
+        }
       }
     }
 
     next();
   } catch (error) {
-    logger.error('Auth middleware error:', error.message);
-    res.status(500).json({ message: 'Authentication failed' });
+    logger.error('Auth middleware error:', {
+      message: error.message,
+      stack: error.stack,
+    });
+    const statusCode = error.statusCode || 401;
+    res.status(statusCode).json({ message: error.message });
   }
 };
