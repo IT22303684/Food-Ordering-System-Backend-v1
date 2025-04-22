@@ -115,20 +115,38 @@ export class RestaurantController {
   async getAllRestaurants(req, res) {
     try {
       logger.info('Fetching all restaurants');
-
-      const restaurants = await this.restaurantService.getAllRestaurants();
-
-      logger.info('Restaurants fetched successfully', { count: restaurants.length });
-
-      res.status(200).json(restaurants);
+  
+      // Extract page and limit from query parameters (default to 1 and 10)
+      const page = req.query.page || 1;
+      const limit = req.query.limit || 10;
+  
+      const result = await this.restaurantService.getAllRestaurants(page, limit);
+  
+      logger.info('Restaurants fetched successfully', {
+        count: result.restaurants.length,
+        totalCount: result.totalCount,
+        page: result.currentPage,
+        totalPages: result.totalPages,
+      });
+  
+      res.status(200).json({
+        success: true,
+        data: result.restaurants,
+        pagination: {
+          totalCount: result.totalCount,
+          currentPage: result.currentPage,
+          totalPages: result.totalPages,
+          pageSize: result.pageSize,
+        },
+      });
     } catch (error) {
       logger.error('Get all restaurants error:', error.message);
       logger.error('Error stack trace:', error.stack);
-
+  
       if (error.isOperational) {
         return res.status(error.statusCode).json({ message: error.message });
       }
-
+  
       res.status(500).json({ message: 'Error fetching restaurants' });
     }
   }

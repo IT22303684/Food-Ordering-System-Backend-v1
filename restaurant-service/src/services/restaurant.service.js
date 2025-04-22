@@ -194,10 +194,33 @@ export class RestaurantService {
     return restaurant;
   }
 // get all resturent
-  async getAllRestaurants() {
-    const restaurants = await Restaurant.find();
-    return restaurants;
-  }
+ async getAllRestaurants(page = 1, limit = 10) {
+  // Convert page and limit to integers and ensure they are positive
+  page = Math.max(1, parseInt(page, 10));
+  limit = Math.max(1, parseInt(limit, 10));
+
+  // Calculate the number of documents to skip
+  const skip = (page - 1) * limit;
+
+  // Fetch paginated restaurants and total count
+  const restaurantsPromise = Restaurant.find()
+    .skip(skip)
+    .limit(limit)
+    .exec();
+
+  const totalCountPromise = Restaurant.countDocuments().exec();
+
+  // Execute both queries in parallel
+  const [restaurants, totalCount] = await Promise.all([restaurantsPromise, totalCountPromise]);
+
+  return {
+    restaurants,
+    totalCount,
+    currentPage: page,
+    totalPages: Math.ceil(totalCount / limit),
+    pageSize: limit,
+  };
+ }
 // update resturent
   async updateRestaurant(id, data, files) {
     const restaurant = await Restaurant.findById(id);

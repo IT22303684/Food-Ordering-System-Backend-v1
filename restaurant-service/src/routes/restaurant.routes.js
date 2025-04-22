@@ -17,9 +17,13 @@ const adminMiddleware = (req, res, next) => {
   next();
 };
 
+// Public route - MUST be before dynamic routes like /:id
+router.get('/all', restaurantController.getAllRestaurants);
+
+// Protected routes
 router.post('/register', upload, validateRestaurantRegistration, restaurantController.registerRestaurant);
-router.get('/:id', authMiddleware, restaurantController.getRestaurantById);
-router.get('/', authMiddleware, restaurantController.getRestaurantByUserId); // Keep only this for GET /api/restaurants
+router.get('/', authMiddleware, restaurantController.getRestaurantByUserId);
+router.get('/:id', authMiddleware, restaurantController.getRestaurantById); // Moved AFTER /all
 router.patch('/:id', authMiddleware, adminMiddleware, restaurantController.updateRestaurantStatus);
 router.put('/:id', authMiddleware, upload, restaurantController.updateRestaurant);
 router.delete('/:id', authMiddleware, restaurantController.deleteRestaurant);
