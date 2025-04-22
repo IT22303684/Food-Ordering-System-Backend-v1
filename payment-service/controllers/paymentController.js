@@ -1,11 +1,10 @@
-// controllers/paymentController.js
 const Payment = require('../models/paymentModel');
 const crypto = require('crypto');
 
-const merchant_id = process.env.PAYHERE_MERCHANT_ID; // Set in your .env
-const merchant_secret = process.env.PAYHERE_MERCHANT_SECRET; // Set in your .env
+const merchant_id = process.env.PAYHERE_MERCHANT_ID;
+const merchant_secret = process.env.PAYHERE_MERCHANT_SECRET;
 
-// Helper to generate hash (for PayHere security)
+// Helper for generating hash (optional, for advanced PayHere security)
 function generateHash(order_id, amount, currency) {
   const hash = crypto.createHash('md5');
   const data = merchant_id + order_id + amount + currency + merchant_secret;
@@ -17,7 +16,7 @@ function generateHash(order_id, amount, currency) {
 exports.startPayment = async (req, res) => {
   const { order_id, amount, currency, first_name, last_name, email, phone, address, city, country } = req.body;
 
-  // Save payment to DB (optional)
+  // Save payment to DB
   await Payment.create({ order_id, amount, currency });
 
   // Prepare PayHere payload
@@ -25,7 +24,7 @@ exports.startPayment = async (req, res) => {
     merchant_id,
     return_url: 'http://localhost:3000/payment/success',
     cancel_url: 'http://localhost:3000/payment/cancel',
-    notify_url: 'http://your-public-domain.com/payment/notify', // Must be public for PayHere to notify
+    notify_url: 'http://your-public-url/payment/notify', // Use ngrok or deployed URL
     order_id,
     items: 'Order Payment',
     amount,
@@ -37,17 +36,16 @@ exports.startPayment = async (req, res) => {
     address,
     city,
     country
-    // hash: generateHash(order_id, amount, currency) // For advanced security, if needed
+    // hash: generateHash(order_id, amount, currency) // Optional
   };
 
-  // Send payload to frontend or redirect user to PayHere
+  // Send payload to frontend for PayHere redirection
   res.json({ payhereUrl: 'https://sandbox.payhere.lk/pay/checkout', payload });
 };
 
 // Handle PayHere notifications
 exports.handleNotification = async (req, res) => {
   const { order_id, payment_id, status_code } = req.body;
-  // Validate signature here if needed
 
   // Update payment status in DB
   await Payment.findOneAndUpdate({ order_id }, { status: status_code, payment_id });
