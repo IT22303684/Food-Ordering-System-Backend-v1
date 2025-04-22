@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Expose the port your service runs on (change if your service uses a different port)
-EXPOSE 5002
+EXPOSE 3006
 
 # Start the service
 CMD ["node", "index.js"]
