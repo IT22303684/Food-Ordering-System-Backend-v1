@@ -6,6 +6,7 @@ export class MenuController {
     this.menuService = new MenuService();
     this.addMenuItem = this.addMenuItem.bind(this);
     this.getMenuItems = this.getMenuItems.bind(this);
+    this.getMenuItemById = this.getMenuItemById.bind(this);
     this.updateMenuItem = this.updateMenuItem.bind(this);
     this.deleteMenuItem = this.deleteMenuItem.bind(this);
   }
@@ -53,6 +54,26 @@ export class MenuController {
         return res.status(error.statusCode).json({ message: error.message });
       }
       res.status(500).json({ message: 'Error fetching menu items' });
+    }
+  }
+
+  // fetch a specific menu item by ID
+  async getMenuItemById(req, res) {
+    try {
+      const { restaurantId, menuItemId } = req.params;
+      logger.info('Fetching menu item:', { restaurantId, menuItemId });
+
+      const menuItem = await this.menuService.getMenuItemById(restaurantId, menuItemId);
+
+      logger.info('Menu item fetched successfully:', { restaurantId, menuItemId });
+
+      res.status(200).json(menuItem);
+    } catch (error) {
+      logger.error('Get menu item error:', { message: error.message, stack: error.stack });
+      if (error.isOperational) {
+        return res.status(error.statusCode).json({ message: error.message });
+      }
+      res.status(500).json({ message: 'Error fetching menu item' });
     }
   }
 

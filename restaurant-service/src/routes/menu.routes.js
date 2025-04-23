@@ -9,6 +9,7 @@ const menuController = new MenuController();
 
 // Public route
 router.get('/:restaurantId/menu-items', menuController.getMenuItems);
+router.get('/:restaurantId/menu-items/:menuItemId', menuController.getMenuItemById);
 
 // Private routes
 router.post('/:restaurantId/menu-items', authMiddleware, upload, validateMenuItem, menuController.addMenuItem);

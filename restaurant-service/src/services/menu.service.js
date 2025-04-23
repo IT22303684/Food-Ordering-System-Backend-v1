@@ -74,6 +74,27 @@ export class MenuService {
     return menuItems;
   }
 
+  // fetch a specific menu item by ID
+  async getMenuItemById(restaurantId, menuItemId) {
+    const restaurant = await Restaurant.findById(restaurantId);
+    if (!restaurant) {
+      const error = new Error('Restaurant not found');
+      error.statusCode = 404;
+      error.isOperational = true;
+      throw error;
+    }
+
+    const menuItem = await MenuItem.findOne({ _id: menuItemId, restaurantId });
+    if (!menuItem) {
+      const error = new Error('Menu item not found');
+      error.statusCode = 404;
+      error.isOperational = true;
+      throw error;
+    }
+
+    return menuItem;
+  }
+
   async updateMenuItem(menuItemId, data, files, userId) {
     const menuItem = await MenuItem.findById(menuItemId);
     if (!menuItem) {
