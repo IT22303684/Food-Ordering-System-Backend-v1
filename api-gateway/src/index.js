@@ -118,6 +118,50 @@ app.use(
   })
 );
 
+// Cart Service Proxy
+app.use(
+  "/api/carts",
+  createProxyMiddleware({
+    target: process.env.CART_SERVICE_URL,
+    ...proxyOptions,
+    pathRewrite: {
+      "^/api/carts": "/api/carts",
+    },
+    onError: (err, req, res) => {
+      console.error("Cart Service Proxy Error:", err.message, {
+        target: process.env.CART_SERVICE_URL,
+        url: req.url,
+      });
+      res.status(500).json({
+        message: "Service is currently unavailable",
+        error: err.message,
+      });
+    },
+  })
+);
+
+// Order Service Proxy
+app.use(
+  "/api/orders",
+  createProxyMiddleware({
+    target: process.env.ORDER_SERVICE_URL,
+    ...proxyOptions,
+    pathRewrite: {
+      "^/api/orders": "/api/orders",
+    },
+    onError: (err, req, res) => {
+      console.error("Order Service Proxy Error:", err.message, {
+        target: process.env.ORDER_SERVICE_URL,
+        url: req.url,
+      });
+      res.status(500).json({
+        message: "Service is currently unavailable",
+        error: err.message,
+      });
+    },
+  })
+);
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -129,6 +173,10 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`API Gateway running on port ${PORT}`);
   console.log(`Auth Service URL: ${process.env.AUTH_SERVICE_URL}`);
-  console.log(`Notification Service URL: ${process.env.NOTIFICATION_SERVICE_URL}`);
+  console.log(
+    `Notification Service URL: ${process.env.NOTIFICATION_SERVICE_URL}`
+  );
   console.log(`Restaurant Service URL: ${process.env.RESTAURANT_SERVICE_URL}`);
+  console.log(`Cart Service URL: ${process.env.CART_SERVICE_URL}`);
+  console.log(`Order Service URL: ${process.env.ORDER_SERVICE_URL}`);
 });
