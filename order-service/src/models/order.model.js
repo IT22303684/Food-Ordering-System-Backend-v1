@@ -28,23 +28,29 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         required: true,
       },
+      totalPrice: {
+        type: Number,
+        required: false,
+      },
     },
   ],
   totalAmount: {
     type: Number,
     required: true,
+    default: 0,
   },
   status: {
     type: String,
     enum: [
-      "pending",
-      "confirmed",
-      "preparing",
-      "ready",
-      "delivered",
-      "cancelled",
+      "PENDING",
+      "CONFIRMED",
+      "PREPARING",
+      "READY",
+      "OUT_FOR_DELIVERY",
+      "DELIVERED",
+      "CANCELLED",
     ],
-    default: "pending",
+    default: "PENDING",
   },
   deliveryAddress: {
     street: String,
@@ -55,11 +61,13 @@ const orderSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ["pending", "completed", "failed"],
-    default: "pending",
+    enum: ["PENDING", "PAID", "FAILED", "REFUNDED"],
+    default: "PENDING",
   },
-  paymentId: {
+  paymentMethod: {
     type: String,
+    enum: ["CREDIT_CARD", "DEBIT_CARD", "CASH", "WALLET"],
+    required: true,
   },
   createdAt: {
     type: Date,
@@ -71,8 +79,20 @@ const orderSchema = new mongoose.Schema({
   },
 });
 
-// Update the updatedAt timestamp before saving
+// Calculate total price for each item and total amount before saving
 orderSchema.pre("save", function (next) {
+  // Calculate total price for each item
+  this.items.forEach((item) => {
+    item.totalPrice = item.price * item.quantity;
+  });
+
+  // Calculate total amount
+  this.totalAmount = this.items.reduce(
+    (total, item) => total + item.totalPrice,
+    0
+  );
+
+  // Update timestamp
   this.updatedAt = Date.now();
   next();
 });

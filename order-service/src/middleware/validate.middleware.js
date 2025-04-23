@@ -13,9 +13,6 @@ export const validateOrder = [
   body("items.*.price")
     .isFloat({ min: 0 })
     .withMessage("Price must be a positive number"),
-  body("totalAmount")
-    .isFloat({ min: 0 })
-    .withMessage("Total amount must be a positive number"),
   body("deliveryAddress")
     .isObject()
     .withMessage("Delivery address is required"),
@@ -26,26 +23,29 @@ export const validateOrder = [
     .notEmpty()
     .withMessage("Zip code is required"),
   body("deliveryAddress.country").notEmpty().withMessage("Country is required"),
+  body("paymentMethod")
+    .isIn(["CREDIT_CARD", "DEBIT_CARD", "CASH", "WALLET"])
+    .withMessage("Invalid payment method"),
 ];
 
 export const validateOrderStatus = [
   body("status")
     .isIn([
-      "pending",
-      "confirmed",
-      "preparing",
-      "ready",
-      "delivered",
-      "cancelled",
+      "PENDING",
+      "CONFIRMED",
+      "PREPARING",
+      "READY",
+      "OUT_FOR_DELIVERY",
+      "DELIVERED",
+      "CANCELLED",
     ])
     .withMessage("Invalid order status"),
 ];
 
 export const validatePaymentStatus = [
   body("paymentStatus")
-    .isIn(["pending", "completed", "failed"])
+    .isIn(["PENDING", "PAID", "FAILED", "REFUNDED"])
     .withMessage("Invalid payment status"),
-  body("paymentId").notEmpty().withMessage("Payment ID is required"),
 ];
 
 export const validateRequest = (req, res, next) => {

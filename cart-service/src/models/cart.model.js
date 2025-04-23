@@ -36,7 +36,9 @@ const cartSchema = new mongoose.Schema({
   },
   restaurantId: {
     type: String,
-    required: true,
+    required: function () {
+      return this.items && this.items.length > 0;
+    },
   },
   items: [cartItemSchema],
   totalAmount: {
