@@ -26,10 +26,10 @@ export class MenuController {
 
       res.status(201).json({
         message: 'Menu item added successfully',
-        menuItem
+        menuItem,
       });
     } catch (error) {
-      logger.error('Add menu item error:', error.message);
+      logger.error('Add menu item error:', { message: error.message, stack: error.stack });
       if (error.isOperational) {
         return res.status(error.statusCode).json({ message: error.message });
       }
@@ -42,13 +42,13 @@ export class MenuController {
       const { restaurantId } = req.params;
       logger.info('Fetching menu items for restaurant:', { restaurantId });
 
-      const menuItems = await this.menuService.getMenuItems(restaurantId, req.user.id);
+      const menuItems = await this.menuService.getMenuItems(restaurantId, req.user?.id);
 
       logger.info('Menu items fetched successfully:', { restaurantId });
 
       res.status(200).json(menuItems);
     } catch (error) {
-      logger.error('Get menu items error:', error.message);
+      logger.error('Get menu items error:', { message: error.message, stack: error.stack });
       if (error.isOperational) {
         return res.status(error.statusCode).json({ message: error.message });
       }
@@ -72,10 +72,10 @@ export class MenuController {
 
       res.status(200).json({
         message: 'Menu item updated successfully',
-        menuItem: updatedMenuItem
+        menuItem: updatedMenuItem,
       });
     } catch (error) {
-      logger.error('Update menu item error:', error.message);
+      logger.error('Update menu item error:', { message: error.message, stack: error.stack });
       if (error.isOperational) {
         return res.status(error.statusCode).json({ message: error.message });
       }
@@ -94,7 +94,7 @@ export class MenuController {
 
       res.status(200).json({ message: 'Menu item deleted successfully' });
     } catch (error) {
-      logger.error('Delete menu item error:', error.message);
+      logger.error('Delete menu item error:', { message: error.message, stack: error.stack });
       if (error.isOperational) {
         return res.status(error.statusCode).json({ message: error.message });
       }

@@ -46,14 +46,14 @@ export class MenuService {
       category: data.category,
       mainImage: mainImageUrl,
       thumbnailImage: thumbnailImageUrl,
-      isAvailable: data.isAvailable ?? true
+      isAvailable: data.isAvailable ?? true,
     });
 
     await menuItem.save();
     return menuItem;
   }
 
-  async getMenuItems(restaurantId, userId) {
+  async getMenuItems(restaurantId, userId = null) {
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) {
       const error = new Error('Restaurant not found');
@@ -62,7 +62,8 @@ export class MenuService {
       throw error;
     }
 
-    if (restaurant.userId.toString() !== userId) {
+    // Skip ownership check if userId is not provided (public route)
+    if (userId && restaurant.userId.toString() !== userId) {
       const error = new Error('Access denied: You do not own this restaurant');
       error.statusCode = 403;
       error.isOperational = true;
