@@ -3,6 +3,9 @@ import { uploadToCloudinary } from '../utils/cloudinary.js';
 import fs from 'fs/promises';
 import axios from 'axios';
 import logger from '../utils/logger.js';
+import { emailClient } from "./email.client.js";
+
+const EMAIL_SERVICE_URL = process.env.EMAIL_SERVICE_URL;
 
 export class RestaurantService {
 
@@ -13,7 +16,7 @@ export class RestaurantService {
       deliveryRadius, taxId, streetAddress, city, state, zipCode, country, email, password, agreeTerms
     } = data;
 
-    // Step 1: Check if restaurant email already exists
+    // Check if restaurant email already exists
     logger.info('Checking for existing restaurant with email:', { email });
     const existingRestaurant = await Restaurant.findOne({ email });
     if (existingRestaurant) {
@@ -23,7 +26,7 @@ export class RestaurantService {
       throw error;
     }
 
-    // Step 2: Register user in auth-service
+    // Register user in auth-service
     logger.info('Registering user in auth-service for email:', { email });
     let userId;
     try {
@@ -180,19 +183,43 @@ export class RestaurantService {
     }
     return restaurant;
   }
-// update resturent status
-  async updateRestaurantStatus(id, status) {
-    const restaurant = await Restaurant.findById(id);
-    if (!restaurant) {
-      const error = new Error('Restaurant not found');
-      error.statusCode = 404;
-      error.isOperational = true;
-      throw error;
-    }
-    restaurant.status = status;
-    await restaurant.save();
-    return restaurant;
+ // Update restaurant status and send corresponding email
+ async updateRestaurantStatus(id, status) {
+  // Find the restaurant by ID
+  const restaurant = await Restaurant.findById(id);
+  if (!restaurant) {
+    const error = new Error('Restaurant not found');
+    error.statusCode = 404;
+    error.isOperational = true;
+    throw error;
   }
+
+  // Update the status
+  restaurant.status = status;
+  const updatedRestaurant = await restaurant.save();
+  logger.info(`Restaurant status updated to ${status} for ID: ${id}`);
+
+  // Send email based on the new status
+  try {
+    if (status === 'reject') {
+      await emailClient.sendRejectionEmail(restaurant.email);
+      logger.info(`Rejection email sent to: ${restaurant.email}`);
+    } else if (status === 'approved') {
+      await emailClient.sendApprovedEmail(restaurant.email);
+      logger.info(`Approval email sent to: ${restaurant.email}`);
+    } else {
+      logger.warn(`No email configured for status: ${status}`);
+    }
+  } catch (emailError) {
+    // Log email failure but don't fail the status update
+    logger.error(`Failed to send email for status ${status}: ${emailError.message}`, {
+      email: restaurant.email,
+      stack: emailError.stack,
+    });
+  }
+
+  return updatedRestaurant;
+}
 // get all resturent
  async getAllRestaurants(page = 1, limit = 10) {
   // Convert page and limit to integers and ensure they are positive

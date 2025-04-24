@@ -26,6 +26,6 @@ router.post('/register', upload, validateRestaurantRegistration, restaurantContr
 router.get('/', authMiddleware, restaurantController.getRestaurantByUserId);
 router.patch('/:id', authMiddleware, adminMiddleware, restaurantController.updateRestaurantStatus);
 router.put('/:id', authMiddleware, upload, restaurantController.updateRestaurant);
-router.delete('/:id', authMiddleware, restaurantController.deleteRestaurant);
+router.delete('/:id', authMiddleware, adminMiddleware, restaurantController.deleteRestaurant);
 
 export default router;
