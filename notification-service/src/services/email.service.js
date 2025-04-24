@@ -56,6 +56,18 @@ class EmailService {
     return this.sendEmail(to, subject, text, html);
   }
 
+  // Send approval email for a restaurant
+  async sendBlockedEmail(to) {
+    const subject = 'Restaurant Blocked';
+    const text = 'your resturent is blocked.';
+    const html = `
+      <h1>Restaurant Application block</h1>
+      <p>Your restaurant application has been approved.</p>
+      <p>You can now start managing your restaurant on our platform.</p>
+    `;
+    return this.sendEmail(to, subject, text, html);
+  }
+
 
   async sendVerificationEmail(to, pin) {
     const subject = "Email Verification";

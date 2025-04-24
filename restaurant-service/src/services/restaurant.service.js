@@ -201,11 +201,14 @@ export class RestaurantService {
 
   // Send email based on the new status
   try {
-    if (status === 'reject') {
+    if (status === 'rejected') {
       await emailClient.sendRejectionEmail(restaurant.email);
       logger.info(`Rejection email sent to: ${restaurant.email}`);
     } else if (status === 'approved') {
       await emailClient.sendApprovedEmail(restaurant.email);
+      logger.info(`Approval email sent to: ${restaurant.email}`);
+    }else if (status === 'blocked') {
+      await emailClient.sendBlockedEmail(restaurant.email);
       logger.info(`Approval email sent to: ${restaurant.email}`);
     } else {
       logger.warn(`No email configured for status: ${status}`);

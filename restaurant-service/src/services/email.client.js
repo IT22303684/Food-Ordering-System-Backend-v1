@@ -55,6 +55,23 @@ class EmailClient {
       throw error;
     }
   }
+
+  // Send blocked email for a restaurant
+  async sendBlockedEmail(email) {
+    try {
+      this.#validateEmail(email);
+      await axiosInstance.post(`${EMAIL_SERVICE_URL}/block-restaurant`, { email });
+      logger.info('Blocked restaurant email sent successfully', { email });
+      return true;
+    } catch (error) {
+      logger.error('Failed to send blocked restaurant email', {
+        email,
+        error: error.message,
+        stack: error.stack,
+      });
+      throw error;
+    }
+  }
 }
 
 export const emailClient = new EmailClient();

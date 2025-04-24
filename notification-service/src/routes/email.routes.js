@@ -10,6 +10,9 @@ router.post('/reject-restaurant', emailController.sendRejectionEmail);
 // Send approval email for a restaurant
 router.post('/approve-restaurant', emailController.sendApprovedEmail);
 
+// Send blocked email for a restaurant
+router.post('/block-restaurant', emailController.sendBlockedEmail);
+
 // Send verification email
 router.post("/verify", emailController.sendVerificationEmail);
 
