@@ -10,6 +10,9 @@ import {
   validateResetPassword,
   validateProfileUpdate,
   validateChangePassword,
+  validateUpdateUser,
+  validateUpdateUserStatus,
+  validateUpdateUserRole,
 } from "../validation/auth.validation.js";
 
 const router = express.Router();
@@ -54,8 +57,30 @@ router.post("/logout", auth, authController.logout);
 router.post("/verify", auth, authController.verifyAuth);
 
 // Admin routes
-router.get("/users", auth, authorize("ADMIN"), (req, res) => {
-  // Admin functionality here
-});
+//router.get("/users", auth, authorize("ADMIN"), );
+router.get("/users", auth, authorize("ADMIN"), authController.getAllUsers);
+router.get("/users/:id", auth, authorize("ADMIN"), authController.getUserById);
+router.patch(
+  "/users/:id",
+  auth,
+  authorize("ADMIN"),
+  validateUpdateUser,
+  authController.updateUser
+);
+router.delete("/users/:id", auth, authorize("ADMIN"), authController.deleteUser);
+router.patch(
+  "/users/:id/status",
+  auth,
+  authorize("ADMIN"),
+  validateUpdateUserStatus,
+  authController.updateUserStatus
+);
+router.patch(
+  "/users/:id/role",
+  auth,
+  authorize("ADMIN"),
+  validateUpdateUserRole,
+  authController.updateUserRole
+);
 
 export default router;
