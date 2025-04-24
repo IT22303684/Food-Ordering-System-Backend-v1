@@ -15,13 +15,22 @@ class CartController {
   async addToCart(req, res) {
     try {
       const { userId } = req.params;
+      logger.info("Received addToCart request:", {
+        userId,
+        body: req.body,
+      });
+
       const itemData = {
         menuItemId: req.body.menuItemId,
         restaurantId: req.body.restaurantId,
         name: req.body.name,
         price: req.body.price,
         quantity: req.body.quantity,
+        mainImage: req.body.mainImage,
+        thumbnailImage: req.body.thumbnailImage,
       };
+
+      logger.info("Processed itemData:", itemData);
 
       const cart = await cartService.addToCart(userId, itemData);
       logger.info("Item added to cart successfully", {

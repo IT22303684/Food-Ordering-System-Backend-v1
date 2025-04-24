@@ -26,6 +26,7 @@ class CartService {
           userId,
           restaurantId: itemData.restaurantId,
           items: [],
+          totalAmount: 0,
         });
       }
 
@@ -54,18 +55,39 @@ class CartService {
 
       if (existingItemIndex > -1) {
         // Update existing item
-        cart.items[existingItemIndex].quantity += itemData.quantity;
-        cart.items[existingItemIndex].totalPrice += totalPrice;
+        const existingItem = cart.items[existingItemIndex];
+        existingItem.quantity += itemData.quantity;
+        existingItem.totalPrice += totalPrice;
+        // Preserve image fields
+        existingItem.mainImage = itemData.mainImage || existingItem.mainImage;
+        existingItem.thumbnailImage =
+          itemData.thumbnailImage || existingItem.thumbnailImage;
       } else {
-        // Add new item
-        cart.items.push({
-          ...itemData,
-          totalPrice,
-        });
+        // Create new cart item with all required fields
+        const newItem = {
+          menuItemId: itemData.menuItemId,
+          restaurantId: itemData.restaurantId,
+          name: itemData.name,
+          price: itemData.price,
+          quantity: itemData.quantity,
+          totalPrice: totalPrice,
+          mainImage: itemData.mainImage || "",
+          thumbnailImage: itemData.thumbnailImage || "",
+        };
+
+        // Add new item to cart
+        cart.items.push(newItem);
       }
 
-      await cart.save();
-      return cart;
+      // Calculate total amount
+      cart.totalAmount = cart.items.reduce(
+        (total, item) => total + item.totalPrice,
+        0
+      );
+
+      // Save the cart
+      const savedCart = await cart.save();
+      return savedCart;
     } catch (error) {
       logger.error("Error adding to cart:", error);
       throw new Error(`Error adding to cart: ${error.message}`);
@@ -86,9 +108,10 @@ class CartService {
         throw new Error("Item not found in cart");
       }
 
-      // Update quantity and total price
-      cart.items[itemIndex].quantity = quantity;
-      cart.items[itemIndex].totalPrice = cart.items[itemIndex].price * quantity;
+      // Update quantity and total price while preserving other fields
+      const item = cart.items[itemIndex];
+      item.quantity = quantity;
+      item.totalPrice = item.price * quantity;
 
       await cart.save();
       return cart;

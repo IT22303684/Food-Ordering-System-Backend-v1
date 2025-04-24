@@ -1,32 +1,45 @@
 import mongoose from "mongoose";
 
-const cartItemSchema = new mongoose.Schema({
-  menuItemId: {
-    type: String,
-    required: true,
+const cartItemSchema = new mongoose.Schema(
+  {
+    menuItemId: {
+      type: String,
+      required: true,
+    },
+    restaurantId: {
+      type: String,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    totalPrice: {
+      type: Number,
+      required: true,
+    },
+    mainImage: {
+      type: String,
+      required: true,
+      default: "",
+    },
+    thumbnailImage: {
+      type: String,
+      required: true,
+      default: "",
+    },
   },
-  restaurantId: {
-    type: String,
-    required: true,
-  },
-  name: {
-    type: String,
-    required: true,
-  },
-  price: {
-    type: Number,
-    required: true,
-  },
-  quantity: {
-    type: Number,
-    required: true,
-    min: 1,
-  },
-  totalPrice: {
-    type: Number,
-    required: true,
-  },
-});
+  { _id: true }
+);
 
 const cartSchema = new mongoose.Schema({
   userId: {
@@ -68,6 +81,21 @@ cartSchema.pre("save", function (next) {
     (total, item) => total + item.totalPrice,
     0
   );
+  next();
+});
+
+// Validate image fields before saving
+cartSchema.pre("save", function (next) {
+  if (this.items && this.items.length > 0) {
+    this.items.forEach((item) => {
+      if (!item.mainImage) {
+        item.mainImage = "";
+      }
+      if (!item.thumbnailImage) {
+        item.thumbnailImage = "";
+      }
+    });
+  }
   next();
 });
 
