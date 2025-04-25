@@ -116,6 +116,7 @@ export class RestaurantService {
     // Step 4: Create new restaurant
     logger.info('Creating new restaurant in database');
     const restaurant = new Restaurant({
+      _id:userId,
       userId,
       restaurantName,
       contactPerson,

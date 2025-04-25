@@ -5,6 +5,8 @@ import fs from 'fs/promises';
 import logger from '../utils/logger.js';
 
 export class MenuService {
+
+  // add menu items
   async addMenuItem(restaurantId, data, files, userId) {
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) {
@@ -53,6 +55,7 @@ export class MenuService {
     return menuItem;
   }
 
+  // get mmenu items by resturent
   async getMenuItems(restaurantId, userId = null) {
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) {
@@ -95,6 +98,7 @@ export class MenuService {
     return menuItem;
   }
 
+  // update menu item
   async updateMenuItem(menuItemId, data, files, userId) {
     const menuItem = await MenuItem.findById(menuItemId);
     if (!menuItem) {
@@ -141,6 +145,7 @@ export class MenuService {
     return menuItem;
   }
 
+  // delete menu item
   async deleteMenuItem(menuItemId, userId) {
     const menuItem = await MenuItem.findById(menuItemId);
     if (!menuItem) {

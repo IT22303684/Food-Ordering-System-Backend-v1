@@ -11,6 +11,7 @@ export class MenuController {
     this.deleteMenuItem = this.deleteMenuItem.bind(this);
   }
 
+  // add menu items
   async addMenuItem(req, res) {
     try {
       const { restaurantId } = req.params;
@@ -38,6 +39,7 @@ export class MenuController {
     }
   }
 
+  // get menu items
   async getMenuItems(req, res) {
     try {
       const { restaurantId } = req.params;
@@ -77,6 +79,7 @@ export class MenuController {
     }
   }
 
+  // update menu items
   async updateMenuItem(req, res) {
     try {
       const { menuItemId } = req.params;
@@ -103,7 +106,8 @@ export class MenuController {
       res.status(500).json({ message: 'Error updating menu item' });
     }
   }
-
+  
+  // delete menu item
   async deleteMenuItem(req, res) {
     try {
       const { menuItemId } = req.params;

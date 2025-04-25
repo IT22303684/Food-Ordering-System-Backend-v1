@@ -6,6 +6,7 @@ import morgan from "morgan";
 import logger from "./utils/logger.js";
 import restaurantRoutes from "./routes/restaurant.routes.js";
 import menuRoutes from "./routes/menu.routes.js";
+import categoryRoutes from "./routes/category.route.js";
 
 const app = express();
 
@@ -22,9 +23,10 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(morgan("dev"));
 
-// Routes
+// Routes 
 app.use("/api/restaurants", restaurantRoutes);
 app.use("/api/restaurants", menuRoutes);
+app.use("/api/restaurants", categoryRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
