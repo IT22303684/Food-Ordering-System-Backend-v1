@@ -85,6 +85,18 @@ class OrderController {
       res.status(400).json({ message: error.message });
     }
   }
+
+  async deleteOrder(req, res) {
+    try {
+      const { orderId } = req.params;
+      await orderService.deleteOrder(orderId);
+      logger.info("Order deleted successfully", { orderId });
+      res.status(204).send();
+    } catch (error) {
+      logger.error("Error in deleteOrder controller:", error);
+      res.status(400).json({ message: error.message });
+    }
+  }
 }
 
 export const orderController = new OrderController();

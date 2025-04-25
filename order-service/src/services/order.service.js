@@ -93,6 +93,19 @@ class OrderService {
       throw new Error(`Error cancelling order: ${error.message}`);
     }
   }
+
+  async deleteOrder(orderId) {
+    try {
+      const order = await Order.findByIdAndDelete(orderId);
+      if (!order) {
+        throw new Error("Order not found");
+      }
+      logger.info("Order deleted from database", { orderId });
+    } catch (error) {
+      logger.error("Error deleting order:", error);
+      throw new Error(`Error deleting order: ${error.message}`);
+    }
+  }
 }
 
 export const orderService = new OrderService();

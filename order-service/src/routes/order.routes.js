@@ -27,5 +27,6 @@ router.patch(
   orderController.updatePaymentStatus
 );
 router.post("/:orderId/cancel", orderController.cancelOrder);
+router.delete("/:orderId", orderController.deleteOrder);
 
 export default router;
