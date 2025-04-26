@@ -3,6 +3,7 @@ import { logger } from "../utils/logger.js";
 import {
   getAvailableDrivers,
   updateDriverAvailability,
+  completeDelivery,
 } from "../services/driver.service.js";
 
 export const assignDeliveryDriver = async (req, res, next) => {
@@ -96,22 +97,12 @@ export const updateDeliveryStatus = async (req, res, next) => {
       };
     }
 
-    // If delivery is completed, update driver availability
-    if (status === "DELIVERED" || status === "CANCELLED") {
-      await updateDriverAvailability(delivery.driverId, true);
+    // Update delivery completion time if delivered
+    if (status === "DELIVERED") {
+      delivery.actualDeliveryTime = new Date();
     }
 
     await delivery.save();
-
-    // Emit status update event if Socket.IO is available
-    const io = req.app.get("io");
-    if (io) {
-      io.emit("delivery-status-updated", {
-        deliveryId: delivery._id,
-        status: status,
-        location: delivery.driverLocation,
-      });
-    }
 
     res.json({
       status: "success",

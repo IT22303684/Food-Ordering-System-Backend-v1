@@ -1,5 +1,6 @@
 import { Driver } from "../models/driver.model.js";
 import { logger } from "../utils/logger.js";
+import { updateDeliveryStatus } from "../services/delivery.service.js";
 
 export const registerDriver = async (req, res, next) => {
   try {
@@ -209,6 +210,24 @@ export const completeDelivery = async (req, res, next) => {
       });
     }
 
+    // Check if driver has an active delivery
+    if (!driver.currentDelivery) {
+      return res.status(400).json({
+        status: "error",
+        message: "Driver has no active delivery",
+      });
+    }
+
+    // Update delivery status in delivery service
+    await updateDeliveryStatus(
+      driver.currentDelivery,
+      "DELIVERED",
+      driver.location.coordinates
+    );
+
+    
+
+    // Update driver status
     driver.isAvailable = true;
     driver.currentDelivery = null;
     driver.totalDeliveries += 1;
@@ -219,6 +238,7 @@ export const completeDelivery = async (req, res, next) => {
       data: driver,
     });
   } catch (error) {
+    logger.error("Error completing delivery:", error);
     next(error);
   }
 };

@@ -46,3 +46,15 @@ export const updateDriverAvailability = async (
     throw error;
   }
 };
+
+export const completeDelivery = async (driverId) => {
+  try {
+    const response = await axios.put(
+      `${DRIVER_SERVICE_URL}/api/drivers/${driverId}/complete`
+    );
+    return response.data.data;
+  } catch (error) {
+    logger.error("Error completing delivery:", error.message);
+    throw error;
+  }
+};

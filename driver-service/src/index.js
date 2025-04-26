@@ -28,7 +28,10 @@ mongoose
     process.env.MONGODB_URI || "mongodb://localhost:27017/driver-service"
   )
   .then(() => logger.info("Connected to MongoDB"))
-  .catch((err) => logger.error("MongoDB connection error:", err));
+  .catch((err) => {
+    logger.error("MongoDB connection error:", err);
+    process.exit(1);
+  });
 
 const PORT = process.env.PORT || 3008;
 app.listen(PORT, () => {
