@@ -162,6 +162,28 @@ app.use(
   })
 );
 
+// Payment Service Proxy
+app.use(
+  "/api/payment",
+  createProxyMiddleware({
+    target: process.env.PAYMENT_SERVICE_URL,
+    ...proxyOptions,
+    pathRewrite: {
+      "^/api/payment": "/api/payment",
+    },
+    onError: (err, req, res) => {
+      console.error("Payment Service Proxy Error:", err.message, {
+        target: process.env.PAYMENT_SERVICE_URL,
+        url: req.url,
+      });
+      res.status(500).json({
+        message: "Payment is currently unavailable",
+        error: err.message,
+      });
+    },
+  })
+);
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
