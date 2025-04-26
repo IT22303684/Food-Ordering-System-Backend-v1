@@ -26,14 +26,15 @@ const restaurantSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   status: { 
     type: String, 
-    enum: ['pending', 'approved', 'rejected'], 
+    enum: ['pending', 'approved', 'rejected', 'blocked'], 
     default: 'pending' 
   },
   agreeTerms: { type: Boolean, required: true },
   businessLicense: { type: String },
   foodSafetyCert: { type: String },
   exteriorPhoto: { type: String },
-  logo: { type: String }
+  logo: { type: String },
+  availability: { type: Boolean, default: true }
 }, { timestamps: true });
 
 export default mongoose.model('Restaurant', restaurantSchema);

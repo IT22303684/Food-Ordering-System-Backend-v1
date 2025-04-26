@@ -18,6 +18,12 @@ export class AuthController {
     this.changePassword = this.changePassword.bind(this);
     this.logout = this.logout.bind(this);
     this.verifyAuth = this.verifyAuth.bind(this);
+    this.getAllUsers = this.getAllUsers.bind(this);
+    this.getUserById = this.getUserById.bind(this);
+    this.updateUser = this.updateUser.bind(this);
+    this.deleteUser = this.deleteUser.bind(this);
+    this.updateUserStatus = this.updateUserStatus.bind(this);
+    this.updateUserRole = this.updateUserRole.bind(this);
   }
 
   async register(req, res) {
@@ -275,6 +281,117 @@ export class AuthController {
         success: false,
         message: "Authentication verification failed",
       });
+    }
+  }
+
+  //-----------------------------admin controllers-------------------
+
+  //sent welcome email 
+  async sendWelcomeEmail(req, res) {
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      const resetToken = await authService.sendWelcomeEmail(email, password);
+
+      res.json({
+        status: "success",
+        message: "Welcome email sent successfully",
+        data: { resetToken },
+      });
+    } catch (error) {
+      logger.error("Send welcome email error:", { error: error.message, stack: error.stack });
+      res.status(error.statusCode || 500).json({ message: error.message });
+    }
+  }
+
+  //get all users
+  async getAllUsers(req, res) {
+    try {
+      const users = await this.authService.getAllUsers();
+      res.status(200).json({
+        status: "success",
+        data: { users },
+      });
+    } catch (error) {
+      logger.error("Get all users error:", error);
+      res.status(error.statusCode || 500).json({ message: error.message });
+    }
+  }
+  //get user by id
+  async getUserById(req, res) {
+    try {
+      const user = await this.authService.getUserById(req.params.id);
+      res.status(200).json({
+        status: "success",
+        data: { user },
+      });
+    } catch (error) {
+      logger.error("Get user by ID error:", error);
+      res.status(error.statusCode || 500).json({ message: error.message });
+    }
+  }
+  //update user
+  async updateUser(req, res) {
+    try {
+      const updatedUser = await this.authService.updateUser(
+        req.params.id,
+        req.body
+      );
+      res.status(200).json({
+        status: "success",
+        data: { user: updatedUser },
+      });
+    } catch (error) {
+      logger.error("Update user error:", error);
+      res.status(error.statusCode || 500).json({ message: error.message });
+    }
+  }
+  // delete user
+  async deleteUser(req, res) {
+    try {
+      await this.authService.deleteUser(req.params.id);
+      res.status(200).json({
+        status: "success",
+        message: "User deleted successfully",
+      });
+    } catch (error) {
+      logger.error("Delete user error:", error);
+      res.status(error.statusCode || 500).json({ message: error.message });
+    }
+  }
+  //update user status
+  async updateUserStatus(req, res) {
+    try {
+      const updatedUser = await this.authService.updateUserStatus(
+        req.params.id,
+        req.body
+      );
+      res.status(200).json({
+        status: "success",
+        data: { user: updatedUser },
+      });
+    } catch (error) {
+      logger.error("Update user status error:", error);
+      res.status(error.statusCode || 500).json({ message: error.message });
+    }
+  }
+  //update user role
+  async updateUserRole(req, res) {
+    try {
+      const updatedUser = await this.authService.updateUserRole(
+        req.params.id,
+        req.body.role
+      );
+      res.status(200).json({
+        status: "success",
+        data: { user: updatedUser },
+      });
+    } catch (error) {
+      logger.error("Update user role error:", error);
+      res.status(error.statusCode || 500).json({ message: error.message });
     }
   }
 }

@@ -11,20 +11,21 @@ export class RestaurantController {
     this.updateRestaurant = this.updateRestaurant.bind(this);
     this.deleteRestaurant = this.deleteRestaurant.bind(this);
     this.getRestaurantByUserId = this.getRestaurantByUserId.bind(this);
+    this.updateRestaurantAvailability = this.updateRestaurantAvailability.bind(this);
   }
   // register resturent
   async registerRestaurant(req, res) {
     try {
       const {
         restaurantName, contactPerson, phoneNumber, businessType, cuisineType, operatingHours,
-        deliveryRadius, taxId, streetAddress, city, state, zipCode, country, email, password, agreeTerms
+        deliveryRadius, taxId, streetAddress, city, state, zipCode, country, email, password, agreeTerms, availability
       } = req.body;
 
       logger.info('Restaurant registration request received for:', { email });
 
       const { restaurant } = await this.restaurantService.registerRestaurant({
         restaurantName, contactPerson, phoneNumber, businessType, cuisineType, operatingHours,
-        deliveryRadius, taxId, streetAddress, city, state, zipCode, country, email, password, agreeTerms
+        deliveryRadius, taxId, streetAddress, city, state, zipCode, country, email, password, agreeTerms, availability
       }, req.files);
 
       logger.info('Restaurant registration successful for:', { email });
@@ -36,7 +37,8 @@ export class RestaurantController {
           userId: restaurant.userId,
           email: restaurant.email,
           restaurantName: restaurant.restaurantName,
-          status: restaurant.status
+          status: restaurant.status,
+          availability: restaurant.availability
         }
       });
     } catch (error) {
@@ -232,6 +234,37 @@ export class RestaurantController {
       }
 
       res.status(500).json({ message: 'Error fetching restaurant' });
+    }
+  }
+  // Update restaurant availability
+  async updateRestaurantAvailability(req, res) {
+    try {
+      const { availability } = req.body;
+      const userId = req.user.id; // From authMiddleware
+
+      logger.info('Updating restaurant availability:', { userId, availability });
+
+      const { restaurant } = await this.restaurantService.updateRestaurantAvailability(userId, availability);
+
+      logger.info('Restaurant availability updated successfully:', { userId, availability });
+
+      res.status(200).json({
+        message: 'Restaurant availability updated',
+        restaurant: {
+          id: restaurant._id,
+          restaurantName: restaurant.restaurantName,
+          availability: restaurant.availability
+        }
+      });
+    } catch (error) {
+      logger.error('Update restaurant availability error:', error.message);
+      logger.error('Error stack trace:', error.stack);
+
+      if (error.isOperational) {
+        return res.status(error.statusCode).json({ message: error.message });
+      }
+
+      res.status(500).json({ message: 'Error updating restaurant availability' });
     }
   }
 }

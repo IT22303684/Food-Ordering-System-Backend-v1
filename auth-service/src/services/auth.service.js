@@ -238,4 +238,204 @@ export class AuthService {
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
   }
+
+  //------------------ admin services ----------------
+
+  async sendWelcomeEmail(email, password) {
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    // Prepare reset URL
+    const resetUrl = `http://localhost:3010/reset-password/${resetToken}`;
+
+    try {
+      // Send welcome email with password and reset link
+      await emailService.sendWelcomeEmail(user.email, user.firstName, password, resetUrl);
+      logger.info("Welcome email sent successfully", { userId: user._id, email });
+    } catch (emailError) {
+      logger.error("Failed to send welcome email:", {
+        userId: user._id,
+        error: emailError.message,
+      });
+      // Don't throw the error, just log it to ensure registration isn't blocked
+    }
+
+    return resetToken;
+  }
+
+  // get all users
+  async getAllUsers() {
+    try {
+      logger.info("Fetching all users");
+      const users = await User.find()
+        .select("-password -verificationPin -resetPasswordToken -verificationPinExpires -resetPasswordExpires")
+        .lean();
+      logger.info("Successfully fetched all users", { count: users.length });
+      return users;
+    } catch (error) {
+      logger.error("Error fetching all users:", error);
+      throw new AppError("Failed to fetch users", 500);
+    }
+  }
+  // get user by id 
+  async getUserById(userId) {
+    try {
+      logger.info("Fetching user by ID:", { userId });
+      const user = await User.findById(userId)
+        .select("-password -verificationPin -resetPasswordToken -verificationPinExpires -resetPasswordExpires")
+        .lean();
+      if (!user) {
+        logger.warn("User not found:", { userId });
+        throw new AppError("User not found", 404);
+      }
+      logger.info("Successfully fetched user:", { userId });
+      return user;
+    } catch (error) {
+      logger.error("Error fetching user by ID:", error);
+      if (error instanceof AppError) throw error;
+      throw new AppError("Failed to fetch user", 500);
+    }
+  }
+  // update user
+  async updateUser(userId, updateData) {
+    try {
+      logger.info("Updating user:", { userId });
+      const user = await User.findById(userId);
+      if (!user) {
+        logger.warn("User not found:", { userId });
+        throw new AppError("User not found", 404);
+      }
+
+      // Check for email uniqueness if email is being updated
+      if (updateData.email && updateData.email !== user.email) {
+        const existingUser = await User.findOne({ email: updateData.email });
+        if (existingUser) {
+          logger.warn("Email already exists:", { email: updateData.email });
+          throw new AppError("Email already registered", 400);
+        }
+      }
+
+      // Update allowed fields
+      const allowedUpdates = [
+        "email",
+        "firstName",
+        "lastName",
+        "phone",
+        "role",
+        "address.street",
+        "address.city",
+        "address.state",
+        "address.zipCode",
+        "address.country",
+      ];
+      Object.keys(updateData).forEach((key) => {
+        if (allowedUpdates.includes(key)) {
+          if (key.startsWith("address.")) {
+            const addressField = key.split(".")[1];
+            user.address[addressField] = updateData[key];
+          } else {
+            user[key] = updateData[key];
+          }
+        }
+      });
+
+      // Handle password update if provided
+      if (updateData.password) {
+        user.password = updateData.password; // Will be hashed by pre-save hook
+      }
+
+      await user.save();
+      logger.info("User updated successfully:", { userId });
+
+      // Return user without sensitive fields
+      return await User.findById(userId)
+        .select("-password -verificationPin -resetPasswordToken -verificationPinExpires -resetPasswordExpires")
+        .lean();
+    } catch (error) {
+      logger.error("Error updating user:", error);
+      if (error instanceof AppError) throw error;
+      throw new AppError("Failed to update user", 500);
+    }
+  }
+  // delete user
+  async deleteUser(userId) {
+    try {
+      logger.info("Deleting user:", { userId });
+      const user = await User.findById(userId);
+      if (!user) {
+        logger.warn("User not found:", { userId });
+        throw new AppError("User not found", 404);
+      }
+
+      await user.deleteOne();
+      logger.info("User deleted successfully:", { userId });
+    } catch (error) {
+      logger.error("Error deleting user:", error);
+      if (error instanceof AppError) throw error;
+      throw new AppError("Failed to delete user", 500);
+    }
+  }
+  // update user status
+  async updateUserStatus(userId, statusData) {
+    try {
+      logger.info("Updating user status:", { userId });
+      const user = await User.findById(userId);
+      if (!user) {
+        logger.warn("User not found:", { userId });
+        throw new AppError("User not found", 404);
+      }
+
+      // Update status fields
+      if (typeof statusData.isActive !== "undefined") {
+        user.isActive = statusData.isActive;
+      }
+      if (typeof statusData.isVerified !== "undefined") {
+        user.isVerified = statusData.isVerified;
+      }
+
+      await user.save();
+      logger.info("User status updated successfully:", { userId });
+
+      // Return user without sensitive fields
+      return await User.findById(userId)
+        .select("-password -verificationPin -resetPasswordToken -verificationPinExpires -resetPasswordExpires")
+        .lean();
+    } catch (error) {
+      logger.error("Error updating user status:", error);
+      if (error instanceof AppError) throw error;
+      throw new AppError("Failed to update user status", 500);
+    }
+  }
+  // update user role
+  async updateUserRole(userId, role) {
+    try {
+      logger.info("Updating user role:", { userId, role });
+      const user = await User.findById(userId);
+      if (!user) {
+        logger.warn("User not found:", { userId });
+        throw new AppError("User not found", 404);
+      }
+
+      user.role = role;
+      await user.save();
+      logger.info("User role updated successfully:", { userId, role });
+
+      return await User.findById(userId)
+        .select("-password -verificationPin -resetPasswordToken -verificationPinExpires -resetPasswordExpires")
+        .lean();
+    } catch (error) {
+      logger.error("Error updating user role:", error);
+      if (error instanceof AppError) throw error;
+      throw new AppError("Failed to update user role", 500);
+    }
+  }
 }

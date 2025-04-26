@@ -1,8 +1,8 @@
-import express from 'express';
+import express, { Router } from 'express';
 import { RestaurantController } from '../controllers/restaurant.controller.js';
 import { authMiddleware } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
-import { validateRestaurantRegistration } from '../validation/restaurant.validation.js';
+import { validateRestaurantRegistration, validateUpdateAvailability } from '../validation/restaurant.validation.js';
 
 const router = express.Router();
 const restaurantController = new RestaurantController();
@@ -24,8 +24,9 @@ router.get('/:id',  restaurantController.getRestaurantById);
 // Protected routes
 router.post('/register', upload, validateRestaurantRegistration, restaurantController.registerRestaurant);
 router.get('/', authMiddleware, restaurantController.getRestaurantByUserId);
+router.patch('/availability', authMiddleware, validateUpdateAvailability, restaurantController.updateRestaurantAvailability );
 router.patch('/:id', authMiddleware, adminMiddleware, restaurantController.updateRestaurantStatus);
 router.put('/:id', authMiddleware, upload, restaurantController.updateRestaurant);
-router.delete('/:id', authMiddleware, restaurantController.deleteRestaurant);
+router.delete('/:id', authMiddleware, adminMiddleware, restaurantController.deleteRestaurant);
 
 export default router;

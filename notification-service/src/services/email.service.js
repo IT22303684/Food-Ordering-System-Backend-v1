@@ -32,6 +32,43 @@ class EmailService {
     }
   }
 
+  // Send rejection email for a restaurant
+  async sendRejectionEmail(to) {
+    const subject = 'Restaurant Application Rejected';
+    const text = 'We regret to inform you that your restaurant application has been rejected.';
+    const html = `
+      <h1>Restaurant Application Rejected</h1>
+      <p>We regret to inform you that your restaurant application has been rejected.</p>
+      <p>Please contact support for more details.</p>
+    `;
+    return this.sendEmail(to, subject, text, html);
+  }
+
+  // Send approval email for a restaurant
+  async sendApprovedEmail(to) {
+    const subject = 'Restaurant Application Approved';
+    const text = 'Congratulations! Your restaurant application has been approved.';
+    const html = `
+      <h1>Restaurant Application Approved</h1>
+      <p>Congratulations! Your restaurant application has been approved.</p>
+      <p>You can now start managing your restaurant on our platform.</p>
+    `;
+    return this.sendEmail(to, subject, text, html);
+  }
+
+  // Send approval email for a restaurant
+  async sendBlockedEmail(to) {
+    const subject = 'Restaurant Blocked';
+    const text = 'your resturent is blocked.';
+    const html = `
+      <h1>Restaurant Application block</h1>
+      <p>Your restaurant application has been approved.</p>
+      <p>You can now start managing your restaurant on our platform.</p>
+    `;
+    return this.sendEmail(to, subject, text, html);
+  }
+
+
   async sendVerificationEmail(to, pin) {
     const subject = "Email Verification";
     const text = `Your verification code is: ${pin}`;

@@ -4,6 +4,15 @@ import { EmailController } from "../controllers/email.controller.js";
 const router = express.Router();
 const emailController = new EmailController();
 
+// Send rejection email for a restaurant
+router.post('/reject-restaurant', emailController.sendRejectionEmail);
+
+// Send approval email for a restaurant
+router.post('/approve-restaurant', emailController.sendApprovedEmail);
+
+// Send blocked email for a restaurant
+router.post('/block-restaurant', emailController.sendBlockedEmail);
+
 // Send verification email
 router.post("/verify", emailController.sendVerificationEmail);
 

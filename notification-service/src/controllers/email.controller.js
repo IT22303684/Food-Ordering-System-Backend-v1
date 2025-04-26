@@ -2,6 +2,54 @@ import emailService from "../services/email.service.js";
 import logger from "../utils/logger.js";
 
 export class EmailController {
+  // Send rejection email for a restaurant
+  async sendRejectionEmail(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
+      logger.info('Sending rejection email', { email });
+      await emailService.sendRejectionEmail(email);
+      res.status(200).json({ message: 'Rejection email sent successfully' });
+    } catch (error) {
+      logger.error('Rejection email error', { error: error.message, stack: error.stack });
+      res.status(500).json({ message: 'Error sending rejection email' });
+    }
+  }
+
+  // Send approval email for a restaurant
+  async sendApprovedEmail(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
+      logger.info('Sending approval email', { email });
+      await emailService.sendApprovedEmail(email);
+      res.status(200).json({ message: 'Approval email sent successfully' });
+    } catch (error) {
+      logger.error('Approval email error', { error: error.message, stack: error.stack });
+      res.status(500).json({ message: 'Error sending approval email' });
+    }
+  }
+
+  // Send blocked email for a restaurant
+  async sendBlockedEmail(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
+      logger.info('Sending approval email', { email });
+      await emailService.sendBlockedEmail(email);
+      res.status(200).json({ message: 'Blocked email sent successfully' });
+    } catch (error) {
+      logger.error('Blocked email error', { error: error.message, stack: error.stack });
+      res.status(500).json({ message: 'Error sending approval email' });
+    }
+  }
+
   async sendVerificationEmail(req, res) {
     try {
       const { email, pin } = req.body;
