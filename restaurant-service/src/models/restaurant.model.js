@@ -33,7 +33,8 @@ const restaurantSchema = new mongoose.Schema({
   businessLicense: { type: String },
   foodSafetyCert: { type: String },
   exteriorPhoto: { type: String },
-  logo: { type: String }
+  logo: { type: String },
+  availability: { type: Boolean, default: true }
 }, { timestamps: true });
 
 export default mongoose.model('Restaurant', restaurantSchema);

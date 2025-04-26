@@ -59,4 +59,15 @@ export const validateRestaurantRegistration = [
   body('agreeTerms')
     .equals('true')
     .withMessage('You must agree to the terms and conditions'),
+  body('availability')
+    .optional()
+    .isBoolean()
+    .withMessage('Availability must be a boolean')
+];
+
+// Update restaurant availability
+export const validateUpdateAvailability = [
+  body('availability')
+    .isBoolean()
+    .withMessage('Availability must be a boolean')
 ];

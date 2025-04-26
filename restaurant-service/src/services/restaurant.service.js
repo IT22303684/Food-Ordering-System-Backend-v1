@@ -13,7 +13,7 @@ export class RestaurantService {
   async registerRestaurant(data, files) {
     const {
       restaurantName, contactPerson, phoneNumber, businessType, cuisineType, operatingHours,
-      deliveryRadius, taxId, streetAddress, city, state, zipCode, country, email, password, agreeTerms
+      deliveryRadius, taxId, streetAddress, city, state, zipCode, country, email, password, agreeTerms, availability
     } = data;
 
     // Check if restaurant email already exists
@@ -132,7 +132,8 @@ export class RestaurantService {
       businessLicense: businessLicenseUrl,
       foodSafetyCert: foodSafetyCertUrl,
       exteriorPhoto: exteriorPhotoUrl,
-      logo: logoUrl
+      logo: logoUrl,
+      availability: availability !== undefined ? availability : true
     });
 
     try {
@@ -342,6 +343,37 @@ export class RestaurantService {
       throw error;
     }
     return restaurant;
+  }
+
+  // Update restaurant availability
+  async updateRestaurantAvailability(id, availability) {
+    logger.info('Updating restaurant availability resturent:', { id, availability });
+    logger.info('meka thama id eka', { id });
+
+    const restaurant = await Restaurant.findById(id);
+    if (!restaurant) {
+      const error = new Error('Restaurant not found');
+      error.statusCode = 404;
+      error.isOperational = true;
+      throw error;
+    }
+
+    restaurant.availability = availability;
+    try {
+      await restaurant.save();
+      logger.info('Restaurant availability updated successfully', { restaurantId: restaurant._id });
+    } catch (error) {
+      logger.error('Failed to update restaurant availability:', {
+        message: error.message,
+        stack: error.stack
+      });
+      const dbError = new Error('Error updating restaurant availability');
+      dbError.statusCode = 500;
+      dbError.isOperational = true;
+      throw dbError;
+    }
+
+    return { restaurant };
   }
 }
 
