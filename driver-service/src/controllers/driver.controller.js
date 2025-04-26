@@ -185,6 +185,14 @@ export const assignDelivery = async (req, res, next) => {
       });
     }
 
+    // Update delivery status to PICKED_UP
+    await updateDeliveryStatus(
+      deliveryId,
+      "PICKED_UP",
+      driver.location.coordinates
+    );
+
+    // Update driver status
     driver.currentDelivery = deliveryId;
     driver.isAvailable = false;
     await driver.save();
@@ -194,6 +202,7 @@ export const assignDelivery = async (req, res, next) => {
       data: driver,
     });
   } catch (error) {
+    logger.error("Error assigning delivery:", error);
     next(error);
   }
 };
@@ -224,8 +233,6 @@ export const completeDelivery = async (req, res, next) => {
       "DELIVERED",
       driver.location.coordinates
     );
-
-    
 
     // Update driver status
     driver.isAvailable = true;

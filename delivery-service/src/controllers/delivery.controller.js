@@ -53,6 +53,28 @@ export const assignDeliveryDriver = async (req, res, next) => {
     // Update driver availability and assign delivery in driver service
     await updateDriverAvailability(assignedDriver._id, false, delivery._id);
 
+    // Schedule status update to PICKED_UP after 5 seconds
+    setTimeout(async () => {
+      try {
+        delivery.status = "PICKED_UP";
+        await delivery.save();
+
+        // Emit delivery picked up event if Socket.IO is available
+        const io = req.app.get("io");
+        if (io) {
+          io.emit("delivery-picked-up", {
+            deliveryId: delivery._id,
+            driverId: assignedDriver._id,
+            orderId: orderId,
+          });
+        }
+
+        logger.info(`Delivery ${delivery._id} status updated to PICKED_UP`);
+      } catch (error) {
+        logger.error("Error updating delivery status to PICKED_UP:", error);
+      }
+    }, 5000);
+
     // Emit delivery assigned event if Socket.IO is available
     const io = req.app.get("io");
     if (io) {
