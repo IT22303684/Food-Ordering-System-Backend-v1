@@ -3,6 +3,7 @@ import { AuthService } from "../services/auth.service.js";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 import logger from "../utils/logger.js";
+import axios from "axios";
 
 export class AuthController {
   constructor() {
@@ -28,7 +29,16 @@ export class AuthController {
 
   async register(req, res) {
     try {
-      const { email, password, role, firstName, lastName, address } = req.body;
+      const {
+        email,
+        password,
+        role,
+        firstName,
+        lastName,
+        address,
+        vehicleType,
+        vehicleNumber,
+      } = req.body;
       console.log("Registration request received for:", email);
 
       const { user } = await this.authService.register({
@@ -39,6 +49,26 @@ export class AuthController {
         address,
         role: role || "CUSTOMER",
       });
+
+      // If registering as a driver, create driver profile
+      if (role === "DELIVERY") {
+        try {
+          // Call driver service to create driver profile
+          await axios.post(
+            `${process.env.DRIVER_SERVICE_URL}/api/drivers/register`,
+            {
+              userId: user._id,
+              vehicleType,
+              vehicleNumber,
+              location: [0, 0], // Default location
+            }
+          );
+        } catch (error) {
+          // If driver profile creation fails, delete the user
+          await User.findByIdAndDelete(user._id);
+          throw new Error("Failed to create driver profile");
+        }
+      }
 
       const token = jwt.sign(
         { userId: user._id, email: user.email, role: user.role },

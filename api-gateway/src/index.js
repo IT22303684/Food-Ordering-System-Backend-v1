@@ -162,6 +162,50 @@ app.use(
   })
 );
 
+// Delivery Service Proxy
+app.use(
+  "/api/delivery",
+  createProxyMiddleware({
+    target: process.env.DELIVERY_SERVICE_URL || "http://localhost:3007",
+    ...proxyOptions,
+    pathRewrite: {
+      "^/api/delivery": "/api/delivery",
+    },
+    onError: (err, req, res) => {
+      console.error("Delivery Service Proxy Error:", err.message, {
+        target: process.env.DELIVERY_SERVICE_URL,
+        url: req.url,
+      });
+      res.status(500).json({
+        message: "Service is currently unavailable",
+        error: err.message,
+      });
+    },
+  })
+);
+
+// Driver Service Proxy
+app.use(
+  "/api/drivers",
+  createProxyMiddleware({
+    target: process.env.DRIVER_SERVICE_URL || "http://localhost:3008",
+    ...proxyOptions,
+    pathRewrite: {
+      "^/api/drivers": "/api/drivers",
+    },
+    onError: (err, req, res) => {
+      console.error("Driver Service Proxy Error:", err.message, {
+        target: process.env.DRIVER_SERVICE_URL,
+        url: req.url,
+      });
+      res.status(500).json({
+        message: "Service is currently unavailable",
+        error: err.message,
+      });
+    },
+  })
+);
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -179,4 +223,14 @@ app.listen(PORT, () => {
   console.log(`Restaurant Service URL: ${process.env.RESTAURANT_SERVICE_URL}`);
   console.log(`Cart Service URL: ${process.env.CART_SERVICE_URL}`);
   console.log(`Order Service URL: ${process.env.ORDER_SERVICE_URL}`);
+  console.log(
+    `Delivery Service URL: ${
+      process.env.DELIVERY_SERVICE_URL || "http://localhost:3007"
+    }`
+  );
+  console.log(
+    `Driver Service URL: ${
+      process.env.DRIVER_SERVICE_URL || "http://localhost:3008"
+    }`
+  );
 });
