@@ -164,12 +164,12 @@ app.use(
 
 // Payment Service Proxy
 app.use(
-  "/api/payment",
+  "/api/payments",
   createProxyMiddleware({
     target: process.env.PAYMENT_SERVICE_URL,
     ...proxyOptions,
     pathRewrite: {
-      "^/api/payment": "/api/payment",
+      "^/api/payments": "/api/payments",
     },
     onError: (err, req, res) => {
       console.error("Payment Service Proxy Error:", err.message, {
@@ -201,4 +201,5 @@ app.listen(PORT, () => {
   console.log(`Restaurant Service URL: ${process.env.RESTAURANT_SERVICE_URL}`);
   console.log(`Cart Service URL: ${process.env.CART_SERVICE_URL}`);
   console.log(`Order Service URL: ${process.env.ORDER_SERVICE_URL}`);
+  console.log(`Paymnet Service URL: ${process.env.PAYMENT_SERVICE_URL}`);
 });

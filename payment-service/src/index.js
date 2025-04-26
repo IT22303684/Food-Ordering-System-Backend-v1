@@ -5,6 +5,7 @@ import cors from "cors";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import logger from "./utils/logger.js";
+import paymentRoutes from "./routes/payment.routes.js";
 
 
 const app = express();
@@ -24,6 +25,7 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 
 // Routes
+app.use("/api/payments", paymentRoutes);
 
 
 // Error handling middleware

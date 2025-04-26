@@ -111,4 +111,17 @@ export class EmailController {
         .json({ message: "Error sending order status update email" });
     }
   }
+
+  // send payment confomation email
+  async sendPaymentConfirmationEmail(req, res) {
+    try {
+      const { email, paymentDetails } = req.body;
+      console.log("Sending payment confirmation email to:", email);
+      await emailService.sendPaymentConfirmationEmail(email, paymentDetails);
+      res.status(200).json({ message: "Payment confirmation email sent successfully" });
+    } catch (error) {
+      console.error("Payment confirmation email error:", error.message);
+      res.status(500).json({ message: "Error sending payment confirmation email" });
+    }
+  }
 }
