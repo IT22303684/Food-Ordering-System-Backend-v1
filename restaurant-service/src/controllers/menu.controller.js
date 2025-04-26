@@ -6,10 +6,12 @@ export class MenuController {
     this.menuService = new MenuService();
     this.addMenuItem = this.addMenuItem.bind(this);
     this.getMenuItems = this.getMenuItems.bind(this);
+    this.getMenuItemById = this.getMenuItemById.bind(this);
     this.updateMenuItem = this.updateMenuItem.bind(this);
     this.deleteMenuItem = this.deleteMenuItem.bind(this);
   }
 
+  // add menu items
   async addMenuItem(req, res) {
     try {
       const { restaurantId } = req.params;
@@ -26,10 +28,10 @@ export class MenuController {
 
       res.status(201).json({
         message: 'Menu item added successfully',
-        menuItem
+        menuItem,
       });
     } catch (error) {
-      logger.error('Add menu item error:', error.message);
+      logger.error('Add menu item error:', { message: error.message, stack: error.stack });
       if (error.isOperational) {
         return res.status(error.statusCode).json({ message: error.message });
       }
@@ -37,18 +39,19 @@ export class MenuController {
     }
   }
 
+  // get menu items
   async getMenuItems(req, res) {
     try {
       const { restaurantId } = req.params;
       logger.info('Fetching menu items for restaurant:', { restaurantId });
 
-      const menuItems = await this.menuService.getMenuItems(restaurantId, req.user.id);
+      const menuItems = await this.menuService.getMenuItems(restaurantId, req.user?.id);
 
       logger.info('Menu items fetched successfully:', { restaurantId });
 
       res.status(200).json(menuItems);
     } catch (error) {
-      logger.error('Get menu items error:', error.message);
+      logger.error('Get menu items error:', { message: error.message, stack: error.stack });
       if (error.isOperational) {
         return res.status(error.statusCode).json({ message: error.message });
       }
@@ -56,6 +59,27 @@ export class MenuController {
     }
   }
 
+  // fetch a specific menu item by ID
+  async getMenuItemById(req, res) {
+    try {
+      const { restaurantId, menuItemId } = req.params;
+      logger.info('Fetching menu item:', { restaurantId, menuItemId });
+
+      const menuItem = await this.menuService.getMenuItemById(restaurantId, menuItemId);
+
+      logger.info('Menu item fetched successfully:', { restaurantId, menuItemId });
+
+      res.status(200).json(menuItem);
+    } catch (error) {
+      logger.error('Get menu item error:', { message: error.message, stack: error.stack });
+      if (error.isOperational) {
+        return res.status(error.statusCode).json({ message: error.message });
+      }
+      res.status(500).json({ message: 'Error fetching menu item' });
+    }
+  }
+
+  // update menu items
   async updateMenuItem(req, res) {
     try {
       const { menuItemId } = req.params;
@@ -72,17 +96,18 @@ export class MenuController {
 
       res.status(200).json({
         message: 'Menu item updated successfully',
-        menuItem: updatedMenuItem
+        menuItem: updatedMenuItem,
       });
     } catch (error) {
-      logger.error('Update menu item error:', error.message);
+      logger.error('Update menu item error:', { message: error.message, stack: error.stack });
       if (error.isOperational) {
         return res.status(error.statusCode).json({ message: error.message });
       }
       res.status(500).json({ message: 'Error updating menu item' });
     }
   }
-
+  
+  // delete menu item
   async deleteMenuItem(req, res) {
     try {
       const { menuItemId } = req.params;
@@ -94,7 +119,7 @@ export class MenuController {
 
       res.status(200).json({ message: 'Menu item deleted successfully' });
     } catch (error) {
-      logger.error('Delete menu item error:', error.message);
+      logger.error('Delete menu item error:', { message: error.message, stack: error.stack });
       if (error.isOperational) {
         return res.status(error.statusCode).json({ message: error.message });
       }

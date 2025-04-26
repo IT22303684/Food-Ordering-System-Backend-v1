@@ -3,15 +3,20 @@ import { uploadToCloudinary } from '../utils/cloudinary.js';
 import fs from 'fs/promises';
 import axios from 'axios';
 import logger from '../utils/logger.js';
+import { emailClient } from "./email.client.js";
+
+const EMAIL_SERVICE_URL = process.env.EMAIL_SERVICE_URL;
 
 export class RestaurantService {
+
+// register resturent
   async registerRestaurant(data, files) {
     const {
       restaurantName, contactPerson, phoneNumber, businessType, cuisineType, operatingHours,
-      deliveryRadius, taxId, streetAddress, city, state, zipCode, country, email, password, agreeTerms
+      deliveryRadius, taxId, streetAddress, city, state, zipCode, country, email, password, agreeTerms, availability
     } = data;
 
-    // Step 1: Check if restaurant email already exists
+    // Check if restaurant email already exists
     logger.info('Checking for existing restaurant with email:', { email });
     const existingRestaurant = await Restaurant.findOne({ email });
     if (existingRestaurant) {
@@ -21,7 +26,7 @@ export class RestaurantService {
       throw error;
     }
 
-    // Step 2: Register user in auth-service
+    // Register user in auth-service
     logger.info('Registering user in auth-service for email:', { email });
     let userId;
     try {
@@ -111,6 +116,7 @@ export class RestaurantService {
     // Step 4: Create new restaurant
     logger.info('Creating new restaurant in database');
     const restaurant = new Restaurant({
+      _id:userId,
       userId,
       restaurantName,
       contactPerson,
@@ -126,7 +132,8 @@ export class RestaurantService {
       businessLicense: businessLicenseUrl,
       foodSafetyCert: foodSafetyCertUrl,
       exteriorPhoto: exteriorPhotoUrl,
-      logo: logoUrl
+      logo: logoUrl,
+      availability: availability !== undefined ? availability : true
     });
 
     try {
@@ -167,7 +174,7 @@ export class RestaurantService {
 
     return { restaurant };
   }
-
+// get resturent by ID
   async getRestaurantById(id) {
     const restaurant = await Restaurant.findById(id);
     if (!restaurant) {
@@ -178,25 +185,75 @@ export class RestaurantService {
     }
     return restaurant;
   }
+ // Update restaurant status and send corresponding email
+ async updateRestaurantStatus(id, status) {
+  // Find the restaurant by ID
+  const restaurant = await Restaurant.findById(id);
+  if (!restaurant) {
+    const error = new Error('Restaurant not found');
+    error.statusCode = 404;
+    error.isOperational = true;
+    throw error;
+  }
 
-  async updateRestaurantStatus(id, status) {
-    const restaurant = await Restaurant.findById(id);
-    if (!restaurant) {
-      const error = new Error('Restaurant not found');
-      error.statusCode = 404;
-      error.isOperational = true;
-      throw error;
+  // Update the status
+  restaurant.status = status;
+  const updatedRestaurant = await restaurant.save();
+  logger.info(`Restaurant status updated to ${status} for ID: ${id}`);
+r
+  // Send email based on the new status
+  try {
+    if (status === 'rejected') {
+      await emailClient.sendRejectionEmail(restaurant.email);
+      logger.info(`Rejection email sent to: ${restaurant.email}`);
+    } else if (status === 'approved') {
+      await emailClient.sendApprovedEmail(restaurant.email);
+      logger.info(`Approval email sent to: ${restaurant.email}`);
+    }else if (status === 'blocked') {
+      await emailClient.sendBlockedEmail(restaurant.email);
+      logger.info(`Approval email sent to: ${restaurant.email}`);
+    } else {
+      logger.warn(`No email configured for status: ${status}`);
     }
-    restaurant.status = status;
-    await restaurant.save();
-    return restaurant;
+  } catch (emailError) {
+    // Log email failure but don't fail the status update
+    logger.error(`Failed to send email for status ${status}: ${emailError.message}`, {
+      email: restaurant.email,
+      stack: emailError.stack,
+    });
   }
 
-  async getAllRestaurants() {
-    const restaurants = await Restaurant.find();
-    return restaurants;
-  }
+  return updatedRestaurant;
+}
+// get all resturent
+ async getAllRestaurants(page = 1, limit = 10) {
+  // Convert page and limit to integers and ensure they are positive
+  page = Math.max(1, parseInt(page, 10));
+  limit = Math.max(1, parseInt(limit, 10));
 
+  // Calculate the number of documents to skip
+  const skip = (page - 1) * limit;
+
+  // Fetch paginated restaurants and total count
+  const restaurantsPromise = Restaurant.find()
+    .skip(skip)
+    .limit(limit)
+    .exec();
+
+  const totalCountPromise = Restaurant.countDocuments().exec();
+
+  // Execute both queries in parallel
+  const [restaurants, totalCount] = await Promise.all([restaurantsPromise, totalCountPromise]);
+
+  return {
+    restaurants,
+    totalCount,
+    currentPage: page,
+    totalPages: Math.ceil(totalCount / limit),
+    pageSize: limit,
+  };
+ }
+// update resturent
   async updateRestaurant(id, data, files) {
     const restaurant = await Restaurant.findById(id);
     if (!restaurant) {
@@ -263,7 +320,7 @@ export class RestaurantService {
     await restaurant.save();
     return restaurant;
   }
-
+// delete resturent
   async deleteRestaurant(id) {
     const restaurant = await Restaurant.findById(id);
     if (!restaurant) {
@@ -275,4 +332,48 @@ export class RestaurantService {
     await restaurant.deleteOne();
     return { message: 'Restaurant deleted successfully' };
   }
+  // get restaurant by userId
+  async getRestaurantByUserId(userId) {
+    logger.info('Fetching restaurant by userId:', { userId });
+    const restaurant = await Restaurant.findOne({ userId });
+    if (!restaurant) {
+      const error = new Error('Restaurant not found for this user');
+      error.statusCode = 404;
+      error.isOperational = true;
+      throw error;
+    }
+    return restaurant;
+  }
+
+  // Update restaurant availability
+  async updateRestaurantAvailability(id, availability) {
+    logger.info('Updating restaurant availability resturent:', { id, availability });
+    logger.info('meka thama id eka', { id });
+
+    const restaurant = await Restaurant.findById(id);
+    if (!restaurant) {
+      const error = new Error('Restaurant not found');
+      error.statusCode = 404;
+      error.isOperational = true;
+      throw error;
+    }
+
+    restaurant.availability = availability;
+    try {
+      await restaurant.save();
+      logger.info('Restaurant availability updated successfully', { restaurantId: restaurant._id });
+    } catch (error) {
+      logger.error('Failed to update restaurant availability:', {
+        message: error.message,
+        stack: error.stack
+      });
+      const dbError = new Error('Error updating restaurant availability');
+      dbError.statusCode = 500;
+      dbError.isOperational = true;
+      throw dbError;
+    }
+
+    return { restaurant };
+  }
 }
+

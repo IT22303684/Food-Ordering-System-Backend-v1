@@ -7,9 +7,12 @@ import { validateMenuItem } from '../validation/menu.validation.js';
 const router = express.Router();
 const menuController = new MenuController();
 
-// Routes for menu management under a specific restaurant
+// Public route
+router.get('/:restaurantId/menu-items', menuController.getMenuItems);
+router.get('/:restaurantId/menu-items/:menuItemId', menuController.getMenuItemById);
+
+// Private routes
 router.post('/:restaurantId/menu-items', authMiddleware, upload, validateMenuItem, menuController.addMenuItem);
-router.get('/:restaurantId/menu-items', authMiddleware, menuController.getMenuItems);
 router.patch('/:restaurantId/menu-items/:menuItemId', authMiddleware, upload, validateMenuItem, menuController.updateMenuItem);
 router.delete('/:restaurantId/menu-items/:menuItemId', authMiddleware, menuController.deleteMenuItem);
 
