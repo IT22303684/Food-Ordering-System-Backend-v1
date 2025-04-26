@@ -200,7 +200,7 @@ export class RestaurantService {
   restaurant.status = status;
   const updatedRestaurant = await restaurant.save();
   logger.info(`Restaurant status updated to ${status} for ID: ${id}`);
-
+r
   // Send email based on the new status
   try {
     if (status === 'rejected') {
