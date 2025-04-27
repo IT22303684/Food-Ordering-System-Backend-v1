@@ -14,6 +14,11 @@ router.post("/", validateOrder, validateRequest, orderController.createOrder);
 router.get("/:orderId", orderController.getOrderById);
 router.get("/user/:userId", orderController.getUserOrders);
 router.get("/restaurant/:restaurantId", orderController.getRestaurantOrders);
+router.get(
+  "/restaurant/:restaurantId",
+  validateRequest,
+  orderController.getRestaurantOrders
+)
 router.patch(
   "/:orderId/status",
   validateOrderStatus,
@@ -28,5 +33,8 @@ router.patch(
 );
 router.post("/:orderId/cancel", orderController.cancelOrder);
 router.delete("/:orderId", orderController.deleteOrder);
+
+//---- resturent routes -----------------
+
 
 export default router;

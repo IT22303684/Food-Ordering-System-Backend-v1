@@ -106,6 +106,34 @@ class OrderService {
       throw new Error(`Error deleting order: ${error.message}`);
     }
   }
+
+  // Retrieves all orders for a given restaurant ID, sorted by creation date (newest first)
+  async getRestaurantOrders(restaurantId) {
+    try {
+      return await Order.find({ restaurantId }).sort({ createdAt: -1 });
+    } catch (error) {
+      logger.error("Error fetching restaurant orders:", error);
+      throw new Error(`Error fetching restaurant orders: ${error.message}`);
+    }
+  }
+
+  // Updates the status of an order by its ID and returns the updated order
+  // async updateOrderStatus(orderId, status) {
+  //   try {
+  //     const order = await Order.findByIdAndUpdate(
+  //       orderId,
+  //       { status },
+  //       { new: true }
+  //     );
+  //     if (!order) {
+  //       throw new Error("Order not found");
+  //     }
+  //     return order;
+  //   } catch (error) {
+  //     logger.error("Error updating order status:", error);
+  //     throw new Error(`Error updating order status: ${error.message}`);
+  //   }
+  // }
 }
 
 export const orderService = new OrderService();
