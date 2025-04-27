@@ -83,6 +83,14 @@ const paymentSchema = new mongoose.Schema({
       required: false,
     },
   },
+  refundedAt: {
+    type: Date,
+    required: false,
+  },
+  refundReason: {
+    type: String,
+    required: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
