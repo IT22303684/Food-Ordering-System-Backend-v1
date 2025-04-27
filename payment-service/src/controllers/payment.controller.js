@@ -1,54 +1,82 @@
-const Payment = require('../models/paymentModel');
-const crypto = require('crypto');
+import { processPayment, handlePayhereNotification } from "../services/payment.service.js";
+import logger from "../utils/logger.js";
 
-const merchant_id = process.env.PAYHERE_MERCHANT_ID;
-const merchant_secret = process.env.PAYHERE_MERCHANT_SECRET;
+export const createPayment = async (req, res) => {
+  try {
+    const {
+      userId,
+      cartId,
+      orderId,
+      restaurantId,
+      items,
+      totalAmount,
+      paymentMethod,
+      cardDetails,
+    } = req.body;
 
-// Helper for generating hash (optional, for advanced PayHere security)
-function generateHash(order_id, amount, currency) {
-  const hash = crypto.createHash('md5');
-  const data = merchant_id + order_id + amount + currency + merchant_secret;
-  hash.update(data);
-  return hash.digest('hex').toUpperCase();
-}
+    // Extract JWT token from Authorization header
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      throw new Error("Authorization token missing");
+    }
 
-// Start payment
-exports.startPayment = async (req, res) => {
-  const { order_id, amount, currency, first_name, last_name, email, phone, address, city, country } = req.body;
+    // Use ngrok URL for PayHere
+    const baseUrl = process.env.API_GATEWAY_URL || "http://localhost:3010";
+    const returnUrl = `${baseUrl}/api/payments/return`;
+    const cancelUrl = `${baseUrl}/api/payments/cancel`;
+    const notifyUrl = `${baseUrl}/api/payments/notify`;
 
-  // Save payment to DB
-  await Payment.create({ order_id, amount, currency });
+    const result = await processPayment({
+      userId,
+      cartId,
+      orderId,
+      restaurantId,
+      items,
+      totalAmount,
+      paymentMethod,
+      cardDetails,
+      returnUrl,
+      cancelUrl,
+      notifyUrl,
+      token, // Pass JWT token
+    });
 
-  // Prepare PayHere payload
-  const payload = {
-    merchant_id,
-    return_url: 'http://localhost:3000/payment/success',
-    cancel_url: 'http://localhost:3000/payment/cancel',
-    notify_url: 'http://your-public-url/payment/notify', // Use ngrok or deployed URL
-    order_id,
-    items: 'Order Payment',
-    amount,
-    currency,
-    first_name,
-    last_name,
-    email,
-    phone,
-    address,
-    city,
-    country
-    // hash: generateHash(order_id, amount, currency) // Optional
-  };
-
-  // Send payload to frontend for PayHere redirection
-  res.json({ payhereUrl: 'https://sandbox.payhere.lk/pay/checkout', payload });
+    res.status(201).json({
+      success: true,
+      data: result,
+      message: "Payment initiated successfully",
+    });
+  } catch (error) {
+    logger.error("Create payment error:", error);
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
 
-// Handle PayHere notifications
-exports.handleNotification = async (req, res) => {
-  const { order_id, payment_id, status_code } = req.body;
+export const handleNotification = async (req, res) => {
+  try {
+    const notification = req.body;
+    const result = await handlePayhereNotification(notification);
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: "Notification processed successfully",
+    });
+  } catch (error) {
+    logger.error("Notification handler error:", error);
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
-  // Update payment status in DB
-  await Payment.findOneAndUpdate({ order_id }, { status: status_code, payment_id });
+export const handleReturn = async (req, res) => {
+  res.redirect("http://localhost:5173/orders");
+};
 
-  res.send('Notification received');
+export const handleCancel = async (req, res) => {
+  res.redirect("http://localhost:5173/cart");
 };
