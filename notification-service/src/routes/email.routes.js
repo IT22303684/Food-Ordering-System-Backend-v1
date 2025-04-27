@@ -25,4 +25,7 @@ router.post("/order-confirmation", emailController.sendOrderConfirmationEmail);
 // Send order status update email
 router.post("/order-status", emailController.sendOrderStatusUpdateEmail);
 
+// Send payment conformation email
+router.post("/payment-confirmation", emailController.sendPaymentConfirmationEmail);
+
 export default router;

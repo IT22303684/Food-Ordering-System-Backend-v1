@@ -120,6 +120,29 @@ class EmailService {
 
     return this.sendEmail(to, subject, text, html);
   }
+
+  // send payment confirmation email 
+  async sendPaymentConfirmationEmail(to, paymentDetails) {
+    const subject = "Payment Confirmation";
+    const text = `Your payment for order ${paymentDetails.orderId} has been successfully processed!`;
+    const itemsList = paymentDetails.items
+      .map(item => `<li>${item.name} - $${item.price} x ${item.quantity} = $${item.totalPrice}</li>`)
+      .join("");
+    const html = `
+      <h1>Payment Confirmation</h1>
+      <p>Your payment for order <strong>${paymentDetails.orderId}</strong> has been successfully processed!</p>
+      <p><strong>Details:</strong></p>
+      <ul>
+        <li>Total Amount: $${paymentDetails.totalAmount}</li>
+        <li>Payment Method: ${paymentDetails.paymentMethod}</li>
+        <li>Transaction ID: ${paymentDetails.transactionId}</li>
+      </ul>
+      <p><strong>Items:</strong></p>
+      <ul>${itemsList}</ul>
+      <p>Thank you for your purchase!</p>
+    `;
+    return this.sendEmail(to, subject, text, html);
+  }
 }
 
 export default new EmailService();

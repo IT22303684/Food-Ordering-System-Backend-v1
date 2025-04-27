@@ -184,6 +184,28 @@ app.use(
   })
 );
 
+// Payment Service Proxy
+app.use(
+  "/api/payments",
+  createProxyMiddleware({
+    target: process.env.PAYMENT_SERVICE_URL,
+    ...proxyOptions,
+    pathRewrite: {
+      "^/api/payments": "/api/payments",
+    },
+    onError: (err, req, res) => {
+      console.error("Payment Service Proxy Error:", err.message, {
+        target: process.env.PAYMENT_SERVICE_URL,
+        url: req.url,
+      });
+      res.status(500).json({
+        message: "Payment is currently unavailable",
+        error: err.message,
+      });
+    },
+  })
+);
+
 // Driver Service Proxy
 app.use(
   "/api/drivers",
@@ -223,6 +245,7 @@ app.listen(PORT, () => {
   console.log(`Restaurant Service URL: ${process.env.RESTAURANT_SERVICE_URL}`);
   console.log(`Cart Service URL: ${process.env.CART_SERVICE_URL}`);
   console.log(`Order Service URL: ${process.env.ORDER_SERVICE_URL}`);
+  console.log(`Paymnet Service URL: ${process.env.PAYMENT_SERVICE_URL}`);
   console.log(
     `Delivery Service URL: ${
       process.env.DELIVERY_SERVICE_URL || "http://localhost:3007"
