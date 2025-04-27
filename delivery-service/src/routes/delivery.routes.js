@@ -4,6 +4,7 @@ import {
   updateDeliveryStatus,
   getDeliveryStatus,
   getDriverLocation,
+  getDeliveryByOrderId,
 } from "../controllers/delivery.controller.js";
 
 const router = express.Router();
@@ -19,5 +20,8 @@ router.get("/:deliveryId/status", getDeliveryStatus);
 
 // Get driver's current location for a delivery
 router.get("/:deliveryId/location", getDriverLocation);
+
+// Get delivery by orderId
+router.get("/order/:orderId", getDeliveryByOrderId);
 
 export default router;

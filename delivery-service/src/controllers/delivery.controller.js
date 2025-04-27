@@ -192,3 +192,25 @@ export const getDriverLocation = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getDeliveryByOrderId = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+
+    const delivery = await Delivery.findOne({ orderId });
+    if (!delivery) {
+      return res.status(404).json({
+        status: "error",
+        message: "Delivery not found for this order",
+      });
+    }
+
+    res.json({
+      status: "success",
+      data: delivery,
+    });
+  } catch (error) {
+    logger.error("Error getting delivery by orderId:", error);
+    next(error);
+  }
+};
