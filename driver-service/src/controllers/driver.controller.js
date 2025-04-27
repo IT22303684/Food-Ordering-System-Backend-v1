@@ -89,24 +89,27 @@ export const updateDriverAvailability = async (req, res, next) => {
       });
     }
 
+    // If driver has an active delivery, prevent changing availability
+    if (driver.currentDelivery) {
+      return res.status(400).json({
+        status: "error",
+        message:
+          "Cannot change availability while having an active delivery. Please complete or cancel the delivery first.",
+      });
+    }
+
     // If setting to unavailable and providing a deliveryId
     if (!isAvailable && deliveryId) {
-      // Check if driver is already assigned to a delivery
-      if (driver.currentDelivery) {
-        return res.status(400).json({
-          status: "error",
-          message: "Driver is already assigned to a delivery",
-        });
-      }
       driver.currentDelivery = deliveryId;
+      driver.isAvailable = false; // Force isAvailable to false when assigned a delivery
     }
 
     // If setting to available, clear currentDelivery
     if (isAvailable) {
       driver.currentDelivery = null;
+      driver.isAvailable = true;
     }
 
-    driver.isAvailable = isAvailable;
     await driver.save();
 
     res.json({
@@ -118,6 +121,32 @@ export const updateDriverAvailability = async (req, res, next) => {
     });
   } catch (error) {
     logger.error("Error updating driver availability:", error);
+    next(error);
+  }
+};
+
+// Add middleware to check driver availability
+export const checkDriverAvailability = async (req, res, next) => {
+  try {
+    const { driverId } = req.params;
+    const driver = await Driver.findById(driverId);
+
+    if (!driver) {
+      return res.status(404).json({
+        status: "error",
+        message: "Driver not found",
+      });
+    }
+
+    // If driver has a current delivery, force isAvailable to false
+    if (driver.currentDelivery && driver.isAvailable) {
+      driver.isAvailable = false;
+      await driver.save();
+    }
+
+    next();
+  } catch (error) {
+    logger.error("Error checking driver availability:", error);
     next(error);
   }
 };
