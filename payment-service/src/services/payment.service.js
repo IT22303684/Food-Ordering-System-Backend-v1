@@ -249,13 +249,12 @@ export const handlePayhereNotification = async (notification) => {
 
       // Send payment confirmation email
       try {
-        // Fetch user email from payment record or JWT (stored in payherePayload.email)
         let userEmail = payment.payherePayload?.email || "customer@example.com";
         try {
           const userResponse = await axios.get(
             `${process.env.API_GATEWAY_URL}/api/users/${payment.userId}`
           );
-          const user = userResponse.data.user || userResponse.data.data || userResponse.data;
+          const user = userResponse.data.user || userResponse.data.data || response.data;
           if (user && user.email) {
             userEmail = user.email;
           }
@@ -280,5 +279,159 @@ export const handlePayhereNotification = async (notification) => {
   } catch (error) {
     logger.error("PayHere notification error:", error);
     throw new Error(`Notification processing failed: ${error.message}`);
+  }
+};
+
+export const getAllPaymentsService = async ({
+  status,
+  restaurantId,
+  startDate,
+  endDate,
+  page = 1,
+  limit = 10,
+}) => {
+  try {
+    logger.info("Fetching payments", { status, restaurantId, startDate, endDate, page, limit });
+    const query = {};
+    if (status) query.paymentStatus = status;
+    if (restaurantId) query.restaurantId = restaurantId;
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) {
+        query.createdAt.$gte = new Date(new Date(startDate).toISOString());
+      }
+      if (endDate) {
+        query.createdAt.$lte = new Date(new Date(endDate).setUTCHours(23, 59, 59, 999)).toISOString();
+      }
+    }
+
+    const skip = (page - 1) * limit;
+    const payments = await Payment.find(query)
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const total = await Payment.countDocuments(query);
+
+    return {
+      success: true,
+      data: {
+        payments,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      },
+      message: "Payments retrieved successfully",
+    };
+  } catch (error) {
+    logger.error("Get all payments error:", error);
+    throw new Error(`Failed to fetch payments: ${error.message}`);
+  }
+};
+
+export const refundPaymentService = async ({ paymentId, reason, adminId }) => {
+  try {
+    logger.info("Starting refundPayment service", { paymentId, reason, adminId });
+    const payment = await Payment.findById(paymentId);
+    if (!payment) {
+      throw new Error("Payment not found");
+    }
+    if (payment.paymentStatus === "REFUNDED") {
+      throw new Error("Payment already refunded");
+    }
+    if (payment.paymentStatus !== "COMPLETED") {
+      throw new Error("Only completed payments can be refunded");
+    }
+
+    payment.paymentStatus = "REFUNDED";
+    payment.refundedAt = new Date();
+    payment.refundReason = reason || "Admin-initiated refund";
+    await payment.save();
+    logger.info("Payment status updated to REFUNDED", { paymentId });
+
+    try {
+      const token = process.env.ADMIN_TOKEN;
+      if (!token) {
+        logger.warn("Admin token missing for order update, skipping order update");
+      } else {
+        await axios.patch(
+          `${process.env.API_GATEWAY_URL}/api/orders/${payment.orderId}`,
+          {
+            paymentStatus: "REFUNDED",
+            status: "CANCELLED",
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        logger.info(`Order ${payment.orderId} updated to CANCELLED`);
+      }
+    } catch (error) {
+      logger.error("Failed to update order", {
+        message: error.message,
+        response: error.response ? {
+          status: error.response.status,
+          data: error.response.data,
+        } : null,
+      });
+      logger.warn("Proceeding with refund despite order update failure", { paymentId });
+    }
+
+    try {
+      let userEmail = "customer@example.com";
+      try {
+        const token = process.env.ADMIN_TOKEN;
+        if (!token) {
+          logger.warn("Admin token missing for user fetch, using default email");
+        } else {
+          const userResponse = await axios.get(
+            `${process.env.API_GATEWAY_URL}/api/users/${payment.userId}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          const user = userResponse.data.user || userResponse.data.data || userResponse.data;
+          if (user && user.email) userEmail = user.email;
+        }
+      } catch (error) {
+        logger.warn("Failed to fetch user email", {
+          message: error.message,
+          response: error.response ? {
+            status: error.response.status,
+            data: error.response.data,
+          } : null,
+        });
+      }
+
+      await emailClient.sendRefundConfirmationEmail(userEmail, {
+        orderId: payment.orderId,
+        totalAmount: payment.totalAmount,
+        refundReason: reason || "Admin-initiated refund",
+        refundedAt: payment.refundedAt,
+      });
+      logger.info(`Refund confirmation email sent to ${userEmail}`);
+    } catch (error) {
+      logger.error("Failed to send refund email", {
+        message: error.message,
+        response: error.response ? {
+          status: error.response.status,
+          data: error.response.data,
+        } : null,
+      });
+      logger.warn("Proceeding with refund despite email failure", { paymentId });
+    }
+
+    logger.info(`Payment ${paymentId} refunded by admin ${adminId}: ${reason}`);
+
+    return { success: true, paymentId, paymentStatus: "REFUNDED" };
+  } catch (error) {
+    logger.error("Refund payment error", {
+      message: error.message,
+      stack: error.stack,
+    });
+    throw new Error(`Refund failed: ${error.message}`);
   }
 };
