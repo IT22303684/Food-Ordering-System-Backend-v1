@@ -79,24 +79,26 @@ export const updateDriverLocation = async (req, res, next) => {
 export const updateDriverAvailability = async (req, res, next) => {
   try {
     const { driverId } = req.params;
-    const { isAvailable } = req.body;
+    const { isAvailable, deliveryId } = req.body;
 
     const driver = await Driver.findById(driverId);
     if (!driver) {
       return res.status(404).json({
         status: "error",
-        message:
-          "Driver account not found. Please contact support if this error persists.",
+        message: "Driver not found",
       });
     }
 
-    // If driver has an active delivery, prevent marking as unavailable
-    if (!isAvailable && driver.currentDelivery) {
-      return res.status(400).json({
-        status: "error",
-        message:
-          "You cannot go offline while you have an active delivery. Please complete or cancel your current delivery first.",
-      });
+    // If setting to unavailable and providing a deliveryId
+    if (!isAvailable && deliveryId) {
+      // Check if driver is already assigned to a delivery
+      if (driver.currentDelivery) {
+        return res.status(400).json({
+          status: "error",
+          message: "Driver is already assigned to a delivery",
+        });
+      }
+      driver.currentDelivery = deliveryId;
     }
 
     // If setting to available, clear currentDelivery

@@ -30,8 +30,9 @@ export const getAvailableDrivers = async (
 export const updateDriverAvailability = async (
   driverId,
   isAvailable,
-  deliveryId = null
+  deliveryId 
 ) => {
+  console.log("deliveryId", deliveryId);
   try {
     const response = await axios.put(
       `${DRIVER_SERVICE_URL}/api/drivers/${driverId}/availability`,

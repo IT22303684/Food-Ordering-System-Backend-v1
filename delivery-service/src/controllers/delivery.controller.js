@@ -1,10 +1,15 @@
 import { Delivery } from "../models/delivery.model.js";
 import { logger } from "../utils/logger.js";
+import axios from "axios";
 import {
   getAvailableDrivers,
   updateDriverAvailability,
   completeDelivery,
 } from "../services/driver.service.js";
+
+// Service URLs
+const DRIVER_SERVICE_URL =
+  process.env.DRIVER_SERVICE_URL || "http://localhost:3010";
 
 export const assignDeliveryDriver = async (req, res, next) => {
   try {
@@ -51,7 +56,14 @@ export const assignDeliveryDriver = async (req, res, next) => {
     await delivery.save();
 
     // Update driver availability and assign delivery in driver service
-    await updateDriverAvailability(assignedDriver._id, false, delivery._id);
+    try {
+      await updateDriverAvailability(assignedDriver._id, false, delivery._id);
+    } catch (error) {
+      logger.error("Error updating driver status:", error);
+      // If driver update fails, delete the delivery to maintain consistency
+      await Delivery.findByIdAndDelete(delivery._id);
+      throw error;
+    }
 
     // Schedule status update to PICKED_UP after 5 seconds
     setTimeout(async () => {
