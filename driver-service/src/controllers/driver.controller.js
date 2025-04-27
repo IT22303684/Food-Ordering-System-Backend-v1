@@ -14,6 +14,15 @@ export const registerDriver = async (req, res, next) => {
       });
     }
 
+    // Check if driver profile already exists for this userId
+    const existingDriver = await Driver.findOne({ userId });
+    if (existingDriver) {
+      return res.status(400).json({
+        status: "error",
+        message: "Driver profile already exists for this user",
+      });
+    }
+
     // Create new driver
     const driver = new Driver({
       userId,
@@ -33,6 +42,7 @@ export const registerDriver = async (req, res, next) => {
       data: driver,
     });
   } catch (error) {
+    logger.error("Error registering driver:", error);
     next(error);
   }
 };
@@ -69,29 +79,29 @@ export const updateDriverLocation = async (req, res, next) => {
 export const updateDriverAvailability = async (req, res, next) => {
   try {
     const { driverId } = req.params;
-    const { isAvailable, deliveryId } = req.body;
+    const { isAvailable } = req.body;
 
     const driver = await Driver.findById(driverId);
     if (!driver) {
       return res.status(404).json({
         status: "error",
-        message: "Driver not found",
+        message:
+          "Driver account not found. Please contact support if this error persists.",
       });
     }
 
-    // If setting to unavailable, require deliveryId
-    if (!isAvailable && !deliveryId) {
+    // If driver has an active delivery, prevent marking as unavailable
+    if (!isAvailable && driver.currentDelivery) {
       return res.status(400).json({
         status: "error",
-        message: "Delivery ID is required when setting driver as unavailable",
+        message:
+          "You cannot go offline while you have an active delivery. Please complete or cancel your current delivery first.",
       });
     }
 
     // If setting to available, clear currentDelivery
     if (isAvailable) {
       driver.currentDelivery = null;
-    } else {
-      driver.currentDelivery = deliveryId;
     }
 
     driver.isAvailable = isAvailable;
@@ -99,9 +109,13 @@ export const updateDriverAvailability = async (req, res, next) => {
 
     res.json({
       status: "success",
+      message: isAvailable
+        ? "You are now online and available for deliveries"
+        : "You are now offline",
       data: driver,
     });
   } catch (error) {
+    logger.error("Error updating driver availability:", error);
     next(error);
   }
 };
@@ -246,6 +260,49 @@ export const completeDelivery = async (req, res, next) => {
     });
   } catch (error) {
     logger.error("Error completing delivery:", error);
+    next(error);
+  }
+};
+
+export const getCurrentDriver = async (req, res, next) => {
+  try {
+    // Get userId from query parameters
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({
+        status: "error",
+        message: "User ID is required",
+      });
+    }
+
+    // Find driver by userId
+    const driver = await Driver.findOne({ userId });
+
+    if (!driver) {
+      return res.status(404).json({
+        status: "error",
+        message: "Driver profile not found",
+      });
+    }
+
+    res.json({
+      status: "success",
+      data: {
+        _id: driver._id,
+        userId: driver.userId,
+        vehicleType: driver.vehicleType,
+        vehicleNumber: driver.vehicleNumber,
+        location: driver.location,
+        isAvailable: driver.isAvailable,
+        currentDelivery: driver.currentDelivery,
+        totalDeliveries: driver.totalDeliveries,
+        createdAt: driver.createdAt,
+        updatedAt: driver.updatedAt,
+      },
+    });
+  } catch (error) {
+    logger.error("Error getting current driver:", error);
     next(error);
   }
 };

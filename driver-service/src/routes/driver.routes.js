@@ -7,12 +7,16 @@ import {
   getDriverDetails,
   assignDelivery,
   completeDelivery,
+  getCurrentDriver,
 } from "../controllers/driver.controller.js";
 
 const router = express.Router();
 
 // Register a new driver
 router.post("/register", registerDriver);
+
+// Get current driver details
+router.get("/me", getCurrentDriver);
 
 // Update driver's current location
 router.put("/:driverId/location", updateDriverLocation);
