@@ -57,7 +57,7 @@ class OrderController {
       res.status(400).json({ message: error.message });
     }
   }
-
+// Updates the status of a specific order by its order ID
   async updatePaymentStatus(req, res) {
     try {
       const { orderId } = req.params;
@@ -97,6 +97,34 @@ class OrderController {
       res.status(400).json({ message: error.message });
     }
   }
+
+  // Fetches all orders associated with a specific restaurant ID
+  async getRestaurantOrders(req, res) {
+    try {
+      const orders = await orderService.getRestaurantOrders(
+        req.params.restaurantId
+      );
+      res.json(orders);
+    } catch (error) {
+      logger.error("Error in getRestaurantOrders controller:", error);
+      res.status(400).json({ message: error.message });
+    }
+  }
+
+  // Updates the status of a specific order by its order ID
+  // async updateOrderStatus(req, res) {
+  //   try {
+  //     const { orderId } = req.params;
+  //     const { status } = req.body;
+  //     const order = await orderService.updateOrderStatus(orderId, status);
+  //     logger.info("Order status updated", { orderId, status });
+  //     res.json(order);
+  //   } catch (error) {
+  //     logger.error("Error in updateOrderStatus controller:", error);
+  //     res.status(400).json({ message: error.message });
+  //   }
+  // }
+
 }
 
 export const orderController = new OrderController();
