@@ -1,4 +1,5 @@
 import { processPayment, handlePayhereNotification, getAllPaymentsService, refundPaymentService } from "../services/payment.service.js";
+import { Payment } from "../models/payment.model.js";
 import logger from "../utils/logger.js";
 
 export const createPayment = async (req, res) => {
@@ -40,6 +41,18 @@ export const createPayment = async (req, res) => {
       notifyUrl,
       token, // Pass JWT token
     });
+
+    // Update the payment status to "COMPLETED"
+    const payment = await Payment.findById(result.paymentId);
+    if (!payment) {
+      throw new Error("Payment record not found");
+    }
+    payment.paymentStatus = "COMPLETED";
+    await payment.save();
+    logger.info(`Payment status updated to COMPLETED for paymentId: ${result.paymentId}`);
+
+    // Update the result to reflect the new payment status
+    result.paymentStatus = "COMPLETED";
 
     res.status(201).json({
       success: true,
