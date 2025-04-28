@@ -116,4 +116,30 @@ export class CategoryService {
     await category.deleteOne();
     return { message: 'Category deleted successfully' };
   }
+
+  // get category by id 
+  async getCategoryById(restaurantId, categoryId) {
+    logger.info(`Fetching category ${categoryId} for restaurant ${restaurantId}`);
+
+    // Validate restaurant existence
+    const restaurant = await Restaurant.findById(restaurantId);
+    if (!restaurant) {
+      const error = new Error('Restaurant not found');
+      error.statusCode = 404;
+      error.isOperational = true;
+      throw error;
+    }
+
+    // Fetch category
+    const category = await Category.findOne({ _id: categoryId, restaurantId });
+    if (!category) {
+      const error = new Error('Category not found');
+      error.statusCode = 404;
+      error.isOperational = true;
+      throw error;
+    }
+
+    logger.info(`Category ${categoryId} retrieved successfully`);
+    return category;
+  }
 }

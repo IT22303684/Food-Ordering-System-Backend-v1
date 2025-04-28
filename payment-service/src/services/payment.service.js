@@ -118,8 +118,8 @@ export const processPayment = async ({
       custom_2: cartId,
     };
 
-    logger.info("PayHere payload:", payherePayload);
-
+    logger.info("PayHere payload---------------------------------------------------------------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..:", payherePayload);
+ 
     // Save initial payment record
     const payment = new Payment({
       userId,
@@ -137,6 +137,15 @@ export const processPayment = async ({
     });
 
     await payment.save();
+
+    logger.info(`Email is ---------------------------------------------------------------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..: ${payherePayload.email}`);
+
+    try {
+      await emailClient.sendPaymentConfirmationEmail(`${payherePayload.email}`, payment);
+      logger.info("Verification email sent to:", user.email);
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError.message);
+    }
 
     return {
       paymentId: payment._id,

@@ -8,6 +8,7 @@ export class CategoryController {
     this.addCategory = this.addCategory.bind(this);
     this.updateCategory = this.updateCategory.bind(this);
     this.deleteCategory = this.deleteCategory.bind(this);
+    this.getCategoryById = this.getCategoryById.bind(this);
   }
 
   async getCategories(req, res) {
@@ -98,6 +99,24 @@ export class CategoryController {
         return res.status(error.statusCode).json({ message: error.message });
       }
       res.status(500).json({ message: 'Error deleting category' });
+    }
+  }
+  async getCategoryById(req, res) {
+    try {
+      const { restaurantId, categoryId } = req.params;
+      logger.info(`Fetching category ${categoryId} for restaurant ${restaurantId}`);
+      const category = await this.categoryService.getCategoryById(restaurantId, categoryId);
+      res.status(200).json({
+        success: true,
+        data: category,
+        message: 'Category retrieved successfully',
+      });
+    } catch (error) {
+      logger.error('Get category by ID controller error:', error);
+      res.status(error.statusCode || 400).json({
+        success: false,
+        message: error.message || 'Failed to fetch category',
+      });
     }
   }
 }
