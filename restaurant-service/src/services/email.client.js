@@ -10,7 +10,7 @@ const EMAIL_SERVICE_URL = process.env.EMAIL_SERVICE_URL || 'http://localhost:301
 const axiosInstance = axios.create();
 axiosRetry(axiosInstance, {
   retries: 3,
-  retryDelay: (retryCount) => retryCount * 1000, // 1s, 2s, 3s
+  retryDelay: (retryCount) => retryCount * 1000,
   retryCondition: (error) => error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED' || axios.isRetryableError(error),
 });
 
@@ -60,7 +60,7 @@ class EmailClient {
   async sendBlockedEmail(email) {
     try {
       this.#validateEmail(email);
-      await axiosInstance.post(`${EMAIL_SERVICE_URL}/block-restaurant`, { email });
+      await axiosInstance.post(`http://localhost:3010/api/email/block-restaurant`, { email });
       logger.info('Blocked restaurant email sent successfully', { email });
       return true;
     } catch (error) {
