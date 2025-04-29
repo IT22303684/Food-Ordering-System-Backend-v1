@@ -1,0 +1,106 @@
+{
+  "info": {
+    "_postman_id": "delivery-service-collection",
+    "name": "Delivery Service",
+    "description": "Collection for testing Delivery Service endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Assign Delivery Driver",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"orderId\": \"your_order_id\",\n    \"customerLocation\": [79.8612, 6.9271]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3010/api/delivery/assign",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3010",
+          "path": ["api", "delivery", "assign"]
+        },
+        "description": "Assign a delivery driver to an order"
+      }
+    },
+    {
+      "name": "Update Delivery Status",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"status\": \"PICKED_UP\",\n    \"location\": [79.8612, 6.9271]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3010/api/delivery/:deliveryId/status",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3010",
+          "path": ["api", "delivery", ":deliveryId", "status"],
+          "variable": [
+            {
+              "key": "deliveryId",
+              "value": "your_delivery_id"
+            }
+          ]
+        },
+        "description": "Update the status of a delivery"
+      }
+    },
+    {
+      "name": "Get Delivery Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3010/api/delivery/:deliveryId/status",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3010",
+          "path": ["api", "delivery", ":deliveryId", "status"],
+          "variable": [
+            {
+              "key": "deliveryId",
+              "value": "your_delivery_id"
+            }
+          ]
+        },
+        "description": "Get the current status of a delivery"
+      }
+    },
+    {
+      "name": "Get Driver Location",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3010/api/delivery/:deliveryId/location",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3010",
+          "path": ["api", "delivery", ":deliveryId", "location"],
+          "variable": [
+            {
+              "key": "deliveryId",
+              "value": "your_delivery_id"
+            }
+          ]
+        },
+        "description": "Get the current location of the driver"
+      }
+    }
+  ]
+}

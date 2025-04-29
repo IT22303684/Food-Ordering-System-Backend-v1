@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "description": "Food Ordering System Backend Services",
   "scripts": {
-    "dev": "concurrently \"cd auth-service && yarn dev\" \"cd notification-service && yarn dev\" \"cd api-gateway && yarn dev\"",
-    "install-all": "concurrently \"cd auth-service && yarn install\" \"cd notification-service && yarn install\" \"cd api-gateway && yarn install\""
+    "dev": "concurrently \"cd auth-service && yarn dev\" \"cd notification-service && yarn dev\" \"cd restaurant-service && yarn dev\" \"cd cart-service && yarn dev\" \"cd order-service && yarn dev\" \"cd delivery-service && yarn dev\" \"cd driver-service && yarn dev\" \"cd payment-service && yarn dev\" \"cd api-gateway && yarn dev\"",
+    "install-all": "concurrently \"cd auth-service && yarn install\" \"cd notification-service && yarn install\" \"cd restaurant-service && yarn install\" \"cd cart-service && yarn install\" \"cd order-service && yarn install\" \"cd delivery-service && yarn install\" \"cd driver-service && yarn install\"  \"cd payment-service && yarn install\" \"cd api-gateway && yarn install\""
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
   }
 }
