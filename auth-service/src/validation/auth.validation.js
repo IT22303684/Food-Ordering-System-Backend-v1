@@ -182,3 +182,97 @@ export const validateChangePassword = [
 
   validateRequest,
 ];
+
+// Update user validation (for admin)
+export const validateUpdateUser = [
+  body("email")
+    .optional()
+    .trim()
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+  body("firstName")
+    .optional()
+    .trim()
+    .isLength({ min: 2 })
+    .withMessage("First name must be at least 2 characters long"),
+  body("lastName")
+    .optional()
+    .trim()
+    .isLength({ min: 2 })
+    .withMessage("Last name must be at least 2 characters long"),
+  body("phone")
+    .optional()
+    .trim()
+    .matches(/^\+?[1-9]\d{1,14}$/)
+    .withMessage("Please provide a valid phone number"),
+  body("role")
+    .optional()
+    .isIn(["CUSTOMER", "RESTAURANT", "DELIVERY", "ADMIN"])
+    .withMessage("Invalid role specified"),
+  body("address.street")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Street address is required"),
+  body("address.city")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("City is required"),
+  body("address.state")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("State is required"),
+  body("address.zipCode")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Zip code is required"),
+  body("address.country")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Country is required"),
+  body("password")
+    .optional()
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters long")
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage(
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+    ),
+  body("confirmPassword")
+    .optional()
+    .custom((value, { req }) => {
+      if (req.body.password && value !== req.body.password) {
+        throw new Error("Passwords do not match");
+      }
+      return true;
+    }),
+  validateRequest,
+];
+
+// Update user status validation (for admin)
+export const validateUpdateUserStatus = [
+  body("isActive")
+    .optional()
+    .isBoolean()
+    .withMessage("isActive must be a boolean"),
+  body("isVerified")
+    .optional()
+    .isBoolean()
+    .withMessage("isVerified must be a boolean"),
+  validateRequest,
+];
+
+// Update user role validation (for admin)
+export const validateUpdateUserRole = [
+  body("role")
+    .notEmpty()
+    .withMessage("Role is required")
+    .isIn(["CUSTOMER", "RESTAURANT", "DELIVERY", "ADMIN"])
+    .withMessage("Invalid role specified"),
+  validateRequest,
+];

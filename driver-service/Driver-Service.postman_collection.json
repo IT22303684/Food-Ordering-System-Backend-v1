@@ -1,0 +1,203 @@
+{
+  "info": {
+    "_postman_id": "driver-service-collection",
+    "name": "Driver Service",
+    "description": "Collection for testing Driver Service endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register Driver",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"userId\": \"6450c73b2821140a0ea5c269\",\n    \"vehicleType\": \"BIKE\",\n    \"vehicleNumber\": \"ABC-1234\",\n    \"location\": [79.8612, 6.9271]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3010/api/drivers/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3010",
+          "path": ["api", "drivers", "register"]
+        },
+        "description": "Register a new delivery driver"
+      }
+    },
+    {
+      "name": "Update Driver Location",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"location\": [79.8612, 6.9271]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3010/api/drivers/:driverId/location",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3010",
+          "path": ["api", "drivers", ":driverId", "location"],
+          "variable": [
+            {
+              "key": "driverId",
+              "value": "your_driver_id",
+              "description": "ID of the driver"
+            }
+          ]
+        },
+        "description": "Update driver's current location"
+      }
+    },
+    {
+      "name": "Update Driver Availability",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"isAvailable\": true\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3010/api/drivers/:driverId/availability",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3010",
+          "path": ["api", "drivers", ":driverId", "availability"],
+          "variable": [
+            {
+              "key": "driverId",
+              "value": "your_driver_id",
+              "description": "ID of the driver"
+            }
+          ]
+        },
+        "description": "Update driver's availability status"
+      }
+    },
+    {
+      "name": "Get Available Drivers",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3010/api/drivers/available?latitude=6.9271&longitude=79.8612&maxDistance=5000",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3010",
+          "path": ["api", "drivers", "available"],
+          "query": [
+            {
+              "key": "latitude",
+              "value": "6.9271",
+              "description": "Customer's latitude"
+            },
+            {
+              "key": "longitude",
+              "value": "79.8612",
+              "description": "Customer's longitude"
+            },
+            {
+              "key": "maxDistance",
+              "value": "5000",
+              "description": "Maximum distance in meters (default: 5000)"
+            }
+          ]
+        },
+        "description": "Get all available drivers within a specific radius"
+      }
+    },
+    {
+      "name": "Get Driver Details",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3010/api/drivers/:driverId",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3010",
+          "path": ["api", "drivers", ":driverId"],
+          "variable": [
+            {
+              "key": "driverId",
+              "value": "your_driver_id",
+              "description": "ID of the driver"
+            }
+          ]
+        },
+        "description": "Get driver details by ID"
+      }
+    },
+    {
+      "name": "Assign Delivery",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"deliveryId\": \"your_delivery_id\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3010/api/drivers/:driverId/assign",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3010",
+          "path": ["api", "drivers", ":driverId", "assign"],
+          "variable": [
+            {
+              "key": "driverId",
+              "value": "your_driver_id",
+              "description": "ID of the driver"
+            }
+          ]
+        },
+        "description": "Assign a delivery to a driver"
+      }
+    },
+    {
+      "name": "Complete Delivery",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3010/api/drivers/:driverId/complete",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3010",
+          "path": ["api", "drivers", ":driverId", "complete"],
+          "variable": [
+            {
+              "key": "driverId",
+              "value": "your_driver_id",
+              "description": "ID of the driver"
+            }
+          ]
+        },
+        "description": "Mark a delivery as completed"
+      }
+    }
+  ]
+}
