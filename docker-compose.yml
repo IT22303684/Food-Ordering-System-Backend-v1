@@ -1,7 +1,7 @@
-# version: "3.8"
+version: "3.8"
 
 services:
-  #API Gateway
+  # API Gateway
   api-gateway:
     build: ./api-gateway
     ports:
@@ -13,6 +13,12 @@ services:
       - ./env/api-gateway.env
     depends_on:
       - auth-service
+      - order-service
+      - delivery-service
+      - driver-service
+      - restaurant-service
+      - payment-service
+      - cart-service
       - notification-service
     networks:
       - food-ordering-network
@@ -21,7 +27,7 @@ services:
   auth-service:
     build: ./auth-service
     ports:
-      - "3002:3002"
+      - "3001:3000"
     volumes:
       - ./auth-service:/app
       - /app/node_modules
@@ -31,65 +37,91 @@ services:
       - food-ordering-network
 
   # Customer Service
-  # customer-service:
-  #   build: ./customer-service
-  #   ports:
-  #     - "3002:3002"
-  #   volumes:
-  #     - ./customer-service:/app
-  #     - /app/node_modules
-  #   env_file:
-  #     - ./env/customer-service.env
-  #   depends_on:
-  #     - auth-service
+  customer-service:
+    build: ./customer-service
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./customer-service:/app
+      - /app/node_modules
+    env_file:
+      - ./env/customer-service.env
+    depends_on:
+      - auth-service
+    networks:
+      - food-ordering-network
 
   # Restaurant Service
-  # restaurant-service:
-  #   build: ./restaurant-service
-  #   ports:
-  #     - "3003:3003"
-  #   volumes:
-  #     - ./restaurant-service:/app
-  #     - /app/node_modules
-  #   env_file:
-  #     - ./env/restaurant-service.env
-  #   depends_on:
-  #     - auth-service
+  restaurant-service:
+    build: ./restaurant-service
+    ports:
+      - "3003:3000"
+    volumes:
+      - ./restaurant-service:/app
+      - /app/node_modules
+    env_file:
+      - ./env/restaurant-service.env
+    depends_on:
+      - auth-service
+    networks:
+      - food-ordering-network
 
-  # # Order Service
-  # order-service:
-  #   build: ./order-service
-  #   ports:
-  #     - "3004:3004"
-  #   volumes:
-  #     - ./order-service:/app
-  #     - /app/node_modules
-  #   env_file:
-  #     - ./env/order-service.env
-  #   depends_on:
-  #     - auth-service
-  #     - customer-service
-  #     - restaurant-service
+  # Order Service
+  order-service:
+    build: ./order-service
+    ports:
+      - "3004:3000"
+    volumes:
+      - ./order-service:/app
+      - /app/node_modules
+    env_file:
+      - ./env/order-service.env
+    depends_on:
+      - auth-service
+      - customer-service
+      - restaurant-service
+      - payment-service
+    networks:
+      - food-ordering-network
 
-  # # Delivery Service
-  # delivery-service:
-  #   build: ./delivery-service
-  #   ports:
-  #     - "3005:3005"
-  #   volumes:
-  #     - ./delivery-service:/app
-  #     - /app/node_modules
-  #   env_file:
-  #     - ./env/delivery-service.env
-  #   depends_on:
-  #     - auth-service
-  #     - order-service
+  # Delivery Service
+  delivery-service:
+    build: ./delivery-service
+    ports:
+      - "3005:3000"
+    volumes:
+      - ./delivery-service:/app
+      - /app/node_modules
+    env_file:
+      - ./env/delivery-service.env
+    depends_on:
+      - auth-service
+      - order-service
+      - driver-service
+    networks:
+      - food-ordering-network
 
-  # # Payment Service
+  # Driver Service
+  driver-service:
+    build: ./driver-service
+    ports:
+      - "3006:3000"
+    volumes:
+      - ./driver-service:/app
+      - /app/node_modules
+    env_file:
+      - ./env/driver-service.env
+    depends_on:
+      - auth-service
+      - delivery-service
+    networks:
+      - food-ordering-network
+
+  # Payment Service
   payment-service:
     build: ./payment-service
     ports:
-      - "3006:3006"
+      - "3007:3000"
     volumes:
       - ./payment-service:/app
       - /app/node_modules
@@ -97,13 +129,29 @@ services:
       - ./env/payment-service.env
     depends_on:
       - auth-service
-      - order-service
+    networks:
+      - food-ordering-network
+
+  # Cart Service
+  cart-service:
+    build: ./cart-service
+    ports:
+      - "3008:3000"
+    volumes:
+      - ./cart-service:/app
+      - /app/node_modules
+    env_file:
+      - ./env/cart-service.env
+    depends_on:
+      - auth-service
+    networks:
+      - food-ordering-network
 
   # Notification Service
   notification-service:
     build: ./notification-service
     ports:
-      - "3003:3003"
+      - "3009:3000"
     volumes:
       - ./notification-service:/app
       - /app/node_modules

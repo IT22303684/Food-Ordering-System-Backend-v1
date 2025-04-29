@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restaurant-service
+  namespace: food-ordering
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: restaurant-service
+  template:
+    metadata:
+      labels:
+        app: restaurant-service
+    spec:
+      containers:
+        - name: restaurant-service
+          image: restaurant-service:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: uri
+            - name: UPLOAD_PATH
+              value: "/uploads"
+            - name: MAX_FILE_SIZE
+              value: "5MB"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "200m"
+          volumeMounts:
+            - name: uploads
+              mountPath: /uploads
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: restaurant-uploads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: restaurant-service
+  namespace: food-ordering
+spec:
+  selector:
+    app: restaurant-service
+  ports:
+    - port: 3000
+      targetPort: 3000
+  type: ClusterIP
