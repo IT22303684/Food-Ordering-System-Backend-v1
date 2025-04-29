@@ -200,30 +200,38 @@ export class RestaurantService {
   restaurant.status = status;
   const updatedRestaurant = await restaurant.save();
   logger.info(`Restaurant status updated to ${status} for ID: ${id}`);
-r
+
   // Send email based on the new status
+  let emailSent = false;
   try {
-    if (status === 'rejected') {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!restaurant.email || !emailRegex.test(restaurant.email)) {
+      logger.warn(`Invalid or missing email address for restaurant: ${id}, skipping email sending`);
+    } else if (status === 'rejected') {
       await emailClient.sendRejectionEmail(restaurant.email);
       logger.info(`Rejection email sent to: ${restaurant.email}`);
+      emailSent = true;
     } else if (status === 'approved') {
       await emailClient.sendApprovedEmail(restaurant.email);
       logger.info(`Approval email sent to: ${restaurant.email}`);
-    }else if (status === 'blocked') {
+      emailSent = true;
+    } else if (status === 'blocked') {
       await emailClient.sendBlockedEmail(restaurant.email);
-      logger.info(`Approval email sent to: ${restaurant.email}`);
+      logger.info(`Blocked email sent to: ${restaurant.email}`);
+      emailSent = true;
     } else {
       logger.warn(`No email configured for status: ${status}`);
     }
   } catch (emailError) {
-    // Log email failure but don't fail the status update
-    logger.error(`Failed to send email for status ${status}: ${emailError.message}`, {
+    logger.error('Failed to send email for status:', {
+      status,
       email: restaurant.email,
-      stack: emailError.stack,
+      message: emailError.message,
+      stack: emailError.stack
     });
   }
 
-  return updatedRestaurant;
+  return { updatedRestaurant, emailSent };
 }
 // get all resturent
  async getAllRestaurants(page = 1, limit = 10) {
