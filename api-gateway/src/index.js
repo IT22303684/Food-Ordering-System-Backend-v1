@@ -144,14 +144,14 @@ app.use(
 app.use(
   "/api/orders",
   createProxyMiddleware({
-    target: process.env.ORDER_SERVICE_URL,
+    target: process.env.ORDER_SERVICE_URL || "http://order-service:3006",
     ...proxyOptions,
     pathRewrite: {
       "^/api/orders": "/api/orders",
     },
     onError: (err, req, res) => {
       console.error("Order Service Proxy Error:", err.message, {
-        target: process.env.ORDER_SERVICE_URL,
+        target: process.env.ORDER_SERVICE_URL || "http://order-service:3006",
         url: req.url,
       });
       res.status(500).json({
@@ -188,14 +188,14 @@ app.use(
 app.use(
   "/api/payments",
   createProxyMiddleware({
-    target: process.env.PAYMENT_SERVICE_URL,
+    target: process.env.PAYMENT_SERVICE_URL || "http://payment-service:3009",
     ...proxyOptions,
     pathRewrite: {
       "^/api/payments": "/api/payments",
     },
     onError: (err, req, res) => {
       console.error("Payment Service Proxy Error:", err.message, {
-        target: process.env.PAYMENT_SERVICE_URL,
+        target: process.env.PAYMENT_SERVICE_URL || "http://payment-service:3009",
         url: req.url,
       });
       res.status(500).json({
@@ -217,7 +217,7 @@ app.use(
     },
     onError: (err, req, res) => {
       console.error("Driver Service Proxy Error:", err.message, {
-        target: process.env.DRIVER_SERVICE_URL,
+        target: process.env.DRIVER_SERVICE_URL || "http://localhost:3008",
         url: req.url,
       });
       res.status(500).json({

@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # API Gateway
   api-gateway:
@@ -27,7 +25,7 @@ services:
   auth-service:
     build: ./auth-service
     ports:
-      - "3001:3000"
+      - "3002:3002"
     volumes:
       - ./auth-service:/app
       - /app/node_modules
@@ -36,26 +34,11 @@ services:
     networks:
       - food-ordering-network
 
-  # Customer Service
-  customer-service:
-    build: ./customer-service
-    ports:
-      - "3002:3000"
-    volumes:
-      - ./customer-service:/app
-      - /app/node_modules
-    env_file:
-      - ./env/customer-service.env
-    depends_on:
-      - auth-service
-    networks:
-      - food-ordering-network
-
   # Restaurant Service
   restaurant-service:
     build: ./restaurant-service
     ports:
-      - "3003:3000"
+      - "3004:3004"
     volumes:
       - ./restaurant-service:/app
       - /app/node_modules
@@ -70,7 +53,7 @@ services:
   order-service:
     build: ./order-service
     ports:
-      - "3004:3000"
+      - "3006:3006"
     volumes:
       - ./order-service:/app
       - /app/node_modules
@@ -78,7 +61,6 @@ services:
       - ./env/order-service.env
     depends_on:
       - auth-service
-      - customer-service
       - restaurant-service
       - payment-service
     networks:
@@ -88,7 +70,7 @@ services:
   delivery-service:
     build: ./delivery-service
     ports:
-      - "3005:3000"
+      - "3007:3007"
     volumes:
       - ./delivery-service:/app
       - /app/node_modules
@@ -105,7 +87,7 @@ services:
   driver-service:
     build: ./driver-service
     ports:
-      - "3006:3000"
+      - "3008:3008"
     volumes:
       - ./driver-service:/app
       - /app/node_modules
@@ -113,7 +95,6 @@ services:
       - ./env/driver-service.env
     depends_on:
       - auth-service
-      - delivery-service
     networks:
       - food-ordering-network
 
@@ -121,7 +102,7 @@ services:
   payment-service:
     build: ./payment-service
     ports:
-      - "3007:3000"
+      - "3009:3009"
     volumes:
       - ./payment-service:/app
       - /app/node_modules
@@ -136,7 +117,7 @@ services:
   cart-service:
     build: ./cart-service
     ports:
-      - "3008:3000"
+      - "3005:3005"
     volumes:
       - ./cart-service:/app
       - /app/node_modules
@@ -151,7 +132,7 @@ services:
   notification-service:
     build: ./notification-service
     ports:
-      - "3009:3000"
+      - "3003:3003"
     volumes:
       - ./notification-service:/app
       - /app/node_modules
