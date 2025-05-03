@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: driver-service
+  labels:
+    app: driver-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: driver-service
+  template:
+    metadata:
+      labels:
+        app: driver-service
+    spec:
+      containers:
+        - name: driver-service
+          image: dasunz/driver-service:latest
+          ports:
+            - containerPort: 3008
+          env:
+            - name: PORT
+              value: "3008"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
